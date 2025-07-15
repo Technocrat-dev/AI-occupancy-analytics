@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Chair Occupancy Analytics</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary: #0ea5e9;
+            --secondary: #8b5cf6;
+            --accent: #14b8a6;
+            --success: #22c55e;
+            --error: #ef4444;
+            --bg-dark: #0f172a;
+            --bg-light: #1e293b;
+            --text-light: #e2e8f0;
+            --text-dark: #94a3b8;
+            --border-color: rgba(128, 128, 128, 0.2);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+        
+        .background-animation {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100vh;
+            background: var(--bg-dark); overflow: hidden; z-index: -1;
+        }
+
+        .background-animation .line {
+            position: absolute; display: block; list-style: none;
+            width: 20px; height: 20px; background: rgba(14, 165, 233, 0.1);
+            animation: animate-bg 25s linear infinite; bottom: -150px; border-radius: 50%;
+        }
+        
+        .background-animation .line:nth-child(1) { left: 25%; width: 80px; height: 80px; animation-delay: 0s; }
+        .background-animation .line:nth-child(2) { left: 10%; width: 20px; height: 20px; animation-delay: 2s; animation-duration: 12s; }
+        .background-animation .line:nth-child(3) { left: 70%; width: 20px; height: 20px; animation-delay: 4s; }
+        .background-animation .line:nth-child(4) { left: 40%; width: 60px; height: 60px; animation-delay: 0s; animation-duration: 18s; }
+        .background-animation .line:nth-child(5) { left: 65%; width: 20px; height: 20px; animation-delay: 0s; }
+        .background-animation .line:nth-child(6) { left: 75%; width: 110px; height: 110px; animation-delay: 3s; }
+        
+        @keyframes animate-bg {
+            0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(-120vh) rotate(720deg); opacity: 0; }
+        }
+
+        .main-container { max-width: 1200px; margin: 0 auto; padding: 2rem; }
+
+        .glass-card {
+            background: rgba(30, 41, 59, 0.6); backdrop-filter: blur(15px);
+            border: 1px solid var(--border-color); border-radius: 20px;
+            padding: 2.5rem; margin-bottom: 2rem; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            opacity: 0; transform: translateY(20px); animation: slideIn 0.5s forwards;
+        }
+
+        @keyframes slideIn { to { opacity: 1; transform: translateY(0); } }
+
+        .header { text-align: center; margin-bottom: 3rem; }
+        .header h1 {
+            font-size: 3rem; font-weight: 800; letter-spacing: -1px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+        .header p { font-size: 1.1rem; color: var(--text-dark); max-width: 600px; margin: auto; }
+        
+        .upload-area {
+            border: 2px dashed var(--text-dark); border-radius: 16px;
+            padding: 3rem; text-align: center; cursor: pointer; transition: all 0.3s ease;
+        }
+        .upload-area:hover, .upload-area.dragover { border-color: var(--primary); background-color: rgba(14, 165, 233, 0.1); }
+        .upload-area i { font-size: 3rem; color: var(--primary); margin-bottom: 1rem; }
+        
+        .selected-file-info { margin-top: 1.5rem; text-align: center; color: var(--text-dark); }
+        .settings-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-top: 2rem; }
+        .setting-group label { display: block; margin-bottom: 0.5rem; font-weight: 500; }
+        .setting-group input {
+            width: 100%; background-color: var(--bg-dark);
+            border: 1px solid var(--border-color); color: var(--text-light);
+            border-radius: 8px; padding: 0.75rem;
+        }
+
+        .btn {
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            color: white; border: none; padding: 1rem 2rem;
+            border-radius: 50px; font-size: 1rem; font-weight: 600;
+            cursor: pointer; transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        .btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(139, 92, 246, 0.3); }
+        .btn:disabled {
+            background: var(--bg-light);
+            color: var(--text-dark);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .progress-container { text-align: center; }
+        .progress-bar { width: 100%; height: 8px; background: var(--bg-light); border-radius: 4px; overflow: hidden; margin-top: 1rem; }
+        .progress-fill { width: 0%; height: 100%; background: linear-gradient(90deg, var(--primary), var(--accent)); border-radius: 4px; transition: width 0.5s ease; }
+        
+        .message { padding: 1rem; border-radius: 8px; margin: 2rem 0; border: 1px solid; }
+        .error-message { background-color: rgba(239, 68, 68, 0.1); border-color: var(--error); color: var(--error); }
+        
+        .results-section h2, .history-section h2 { text-align: center; font-size: 2rem; margin-bottom: 2rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem;}
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; }
+        .stat-card { text-align: center; padding: 1.5rem; background: var(--bg-light); border-radius: 16px; border: 1px solid var(--border-color); }
+        .stat-value { font-size: 2.5rem; font-weight: 700; color: var(--primary); }
+        .stat-label { color: var(--text-dark); }
+        
+        .asset-table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+        .asset-table th, .asset-table td { padding: 0.75rem; text-align: left; border-bottom: 1px solid var(--border-color); }
+        .asset-table th { color: var(--text-dark); }
+    </style>
+</head>
+<body>
+    <div class="background-animation">
+        <div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div>
+    </div>
+
+    <main class="main-container">
+        <header class="header" id="mainHeader">
+            <h1>AI Occupancy Analytics</h1>
+            <p>Unlock powerful insights from your video footage. Analyze space utilization, user behavior, and key activity events.</p>
+            <div style="margin-top: 1.5rem;">
+                <button class="btn" id="viewHistoryBtn"><i class="fas fa-history"></i> View Analysis History</button>
+            </div>
+        </header>
+
+        <div id="mainContent">
+            <section class="glass-card" id="uploadCard">
+                <div class="file-upload" id="fileUpload">
+                    <div class="upload-area">
+                        <i class="fas fa-video"></i>
+                        <h3>Drop video file here or click to browse</h3>
+                    </div>
+                    <input type="file" id="videoFile" accept="video/*" style="display: none;">
+                    <div class="selected-file-info" id="selectedFileInfo" style="display: none;">
+                         <p><i class="fas fa-file-video"></i> <strong>File:</strong> <span id="fileName"></span> (<span id="fileSize"></span>)</p>
+                    </div>
+                </div>
+                <div class="settings-grid">
+                     <div class="setting-group">
+                        <label for="proximityThreshold">Proximity Threshold (px)</label>
+                        <input type="number" id="proximityThreshold" value="80" title="How close a person must be to a chair.">
+                    </div>
+                    <div class="setting-group">
+                        <label for="occupancyFrames">Occupancy Frames</label>
+                        <input type="number" id="occupancyFrames" value="5" title="Number of consecutive frames to confirm occupancy.">
+                    </div>
+                    <div class="setting-group">
+                        <label for="motionBlurThreshold">Motion Blur Threshold</label>
+                        <input type="number" id="motionBlurThreshold" value="100" title="Sensitivity for detecting and skipping blurry frames.">
+                    </div>
+                    <div class="setting-group" style="display: flex; align-items: flex-end;">
+                        <button class="btn" id="processBtn" disabled>
+                            <i class="fas fa-rocket"></i> Analyze Video
+                        </button>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <section class="glass-card" id="progressCard" style="display: none;">
+            <div class="progress-container">
+                <h3><i class="fas fa-cogs fa-spin"></i> Analyzing... Please wait.</h3>
+            </div>
+        </section>
+
+        <div class="message error-message" id="errorMessage" style="display: none;"></div>
+
+        <section id="resultsSection" style="display: none;">
+        </section>
+
+        <section id="historySection" style="display: none;">
+            <div class="glass-card">
+                <h2><i class="fas fa-history"></i> Analysis History</h2>
+                <p style="text-align:center; color: var(--text-dark); margin-bottom: 2rem;">
+                    A list of all previously processed videos. Click "View Report" for details.
+                </p>
+                <div style="max-height: 60vh; overflow-y: auto;">
+                    <table class="asset-table">
+                        <thead>
+                            <tr>
+                                <th>Filename</th>
+                                <th>Analysis Date</th>
+                                <th>Avg. Utilization</th>
+                                <th>Peak Occupancy</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="historyTableBody"></tbody>
+                    </table>
+                </div>
+                <div style="margin-top: 2rem; text-align: center;">
+                    <button class="btn" id="backToUploadBtn" style="background: var(--bg-light);"><i class="fas fa-arrow-left"></i> Back to Upload</button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        const API_BASE = 'http://127.0.0.1:8000';
+        let selectedFile = null;
+        let occupancyChartInstance = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const fileUpload = document.getElementById('fileUpload');
+            const fileInput = document.getElementById('videoFile');
+            fileUpload.addEventListener('click', () => fileInput.click());
+            fileInput.addEventListener('change', (e) => handleFile(e.target.files[0]));
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                fileUpload.addEventListener(eventName, e => { e.preventDefault(); e.stopPropagation(); }, false);
+                if (eventName === 'dragenter' || eventName === 'dragover') {
+                    fileUpload.addEventListener(eventName, () => fileUpload.classList.add('dragover'), false);
+                } else {
+                    fileUpload.addEventListener(eventName, () => fileUpload.classList.remove('dragover'), false);
+                }
+            });
+            fileUpload.addEventListener('drop', (e) => handleFile(e.dataTransfer.files[0]), false);
+
+            document.getElementById('processBtn').addEventListener('click', processVideo);
+            
+            document.getElementById('viewHistoryBtn').addEventListener('click', showHistoryView);
+            document.getElementById('backToUploadBtn').addEventListener('click', showMainView);
+        });
+        
+        function displayResults(data) {
+            const resultsSection = document.getElementById('resultsSection');
+            showMainView(false); // Hide main view and header
+            resultsSection.style.display = 'block';
+
+            if (occupancyChartInstance) {
+                occupancyChartInstance.destroy();
+            }
+
+            const stats = data.processing_results;
+            
+            const createTable = (headers, dataObject) => {
+                if (!dataObject || Object.keys(dataObject).length === 0) return '<p>No data available.</p>';
+                let table = '<table class="asset-table"><thead><tr>';
+                headers.forEach(h => table += `<th>${h}</th>`);
+                table += '</tr></thead><tbody>';
+                for (const key in dataObject) {
+                    table += `<tr><td><strong>${key}</strong></td>`;
+                    Object.values(dataObject[key]).forEach(val => table += `<td>${val}</td>`);
+                    table += '</tr>';
+                }
+                table += '</tbody></table>';
+                return table;
+            };
+
+            const createLedgerTable = (ledger) => {
+                if (!ledger || ledger.length === 0) return '<p>No interactions recorded.</p>';
+                const headers = ['Person ID', 'Chair ID', 'Start (sec)', 'End (sec)', 'Duration (sec)'];
+                let table = '<table class="asset-table"><thead><tr>';
+                headers.forEach(h => table += `<th>${h}</th>`);
+                table += '</tr></thead><tbody>';
+                ledger.forEach(entry => {
+                    table += `<tr>
+                        <td>${entry.person_id}</td>
+                        <td>${entry.chair_id}</td>
+                        <td>${entry.start_sec}</td>
+                        <td>${entry.end_sec}</td>
+                        <td>${entry.duration_sec}</td>
+                    </tr>`;
+                });
+                table += '</tbody></table>';
+                return table;
+            };
+
+            resultsSection.innerHTML = `
+                <div class="glass-card">
+                    <h2><i class="fas fa-tachometer-alt"></i> Dashboard</h2>
+                    <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">
+                        <div class="stat-card"><div class="stat-value">${stats.total_chairs_detected}</div><div class="stat-label"><i class="fas fa-chair"></i> Chairs Detected</div></div>
+                        <div class="stat-card"><div class="stat-value">${stats.max_occupied_chairs}</div><div class="stat-label"><i class="fas fa-users"></i> Peak Occupancy</div></div>
+                        <div class="stat-card"><div class="stat-value">${(stats.average_occupancy_rate * 100).toFixed(1)}%</div><div class="stat-label"><i class="fas fa-percentage"></i> Avg. Utilization</div></div>
+                        <div class="stat-card"><div class="stat-value">${stats.interaction_ledger.length}</div><div class="stat-label"><i class="fas fa-exchange-alt"></i> Total Interactions</div></div>
+                        <div class="stat-card"><div class="stat-value">${(stats.activity_windows.peak_rate * 100).toFixed(1)}%</div><div class="stat-label" title="${stats.activity_windows.peak_window}"><i class="fas fa-fire"></i> Peak Activity Rate</div></div>
+                        <div class="stat-card"><div class="stat-value">${(stats.activity_windows.lowest_rate * 100).toFixed(1)}%</div><div class="stat-label" title="${stats.activity_windows.lowest_window}"><i class="fas fa-snowflake"></i> Lowest Activity Rate</div></div>
+                    </div>
+                </div>
+                <div class="glass-card">
+                     <h2><i class="fas fa-chart-line"></i> Occupancy Over Time</h2>
+                     <canvas id="occupancyChart"></canvas>
+                </div>
+                <div class="glass-card" style="text-align: center;">
+                    <h2><i class="fas fa-video"></i> Processed Video</h2>
+                    <video id="processedVideo" controls style="max-width: 100%; border-radius: 12px; margin-top: 1rem;"></video>
+                    <div style="margin-top: 2rem; display: flex; justify-content: center; gap: 1rem;">
+                        <button class="btn" id="downloadBtn" data-fileid="${data.file_id}"><i class="fas fa-download"></i> Download Video</button>
+                        <button class="btn" id="resetBtn" style="background: var(--bg-light);"><i class="fas fa-redo"></i> Analyze Another</button>
+                    </div>
+                </div>
+                 <div class="glass-card">
+                    <h2><i class="fas fa-users-cog"></i> Per-Person Analytics</h2>
+                    ${createTable(['Person', 'Total Interaction Time (sec)', 'Unique Chairs Used', 'Session Count'], stats.person_analytics)}
+                </div>
+                <div class="glass-card">
+                    <h2><i class="fas fa-chair"></i> Per-Chair Analytics</h2>
+                     ${createTable(['Chair', 'Total Usage Time (sec)', 'Unique Users'], stats.chair_analytics)}
+                </div>
+                <div class="glass-card">
+                    <h2><i class="fas fa-clipboard-list"></i> Interaction Ledger</h2>
+                    <div style="max-height: 400px; overflow-y: auto;">
+                        ${createLedgerTable(stats.interaction_ledger)}
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('resetBtn').addEventListener('click', resetApp);
+            document.getElementById('downloadBtn').addEventListener('click', downloadVideo);
+            document.getElementById('processedVideo').src = `${API_BASE}${data.output_video_url}`;
+
+            // Create Chart
+            const ctx = document.getElementById('occupancyChart').getContext('2d');
+            const chartData = {
+                labels: stats.occupancy_over_time.map(d => d.frame),
+                datasets: [{
+                    label: 'Occupancy Rate',
+                    data: stats.occupancy_over_time.map(d => d.occupancy_rate * 100),
+                    borderColor: 'rgba(14, 165, 233, 0.8)',
+                    backgroundColor: 'rgba(14, 165, 233, 0.2)',
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 0,
+                }]
+            };
+            occupancyChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: chartData,
+                options: {
+                    scales: {
+                        y: { 
+                            beginAtZero: true, 
+                            max: 100,
+                            ticks: { color: 'var(--text-dark)', callback: (value) => value + '%' } 
+                        },
+                        x: { 
+                            ticks: { color: 'var(--text-dark)' },
+                            title: { display: true, text: 'Frame Number', color: 'var(--text-light)'}
+                        }
+                    },
+                    plugins: { legend: { labels: { color: 'var(--text-light)' } } }
+                }
+            });
+        }
+
+        function handleFile(file) {
+            if (!file) return;
+            selectedFile = file;
+            document.getElementById('fileName').textContent = file.name;
+            document.getElementById('fileSize').textContent = `${(file.size / 1024 / 1024).toFixed(2)} MB`;
+            document.getElementById('selectedFileInfo').style.display = 'block';
+            document.getElementById('processBtn').disabled = false;
+        }
+        
+        function resetApp() {
+            selectedFile = null;
+            document.getElementById('videoFile').value = '';
+            document.getElementById('selectedFileInfo').style.display = 'none';
+            document.getElementById('processBtn').disabled = true;
+            if (occupancyChartInstance) { 
+                occupancyChartInstance.destroy(); 
+            }
+            showMainView(true);
+        }
+
+        function showMainView(display = true) {
+            document.getElementById('mainHeader').style.display = display ? 'block' : 'none';
+            document.getElementById('mainContent').style.display = display ? 'block' : 'none';
+            document.getElementById('historySection').style.display = 'none';
+            document.getElementById('resultsSection').style.display = 'none';
+            document.getElementById('progressCard').style.display = 'none';
+            hideError();
+        }
+
+        async function showHistoryView() {
+            showMainView(false);
+            document.getElementById('historySection').style.display = 'block';
+
+            const tableBody = document.getElementById('historyTableBody');
+            tableBody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Loading history...</td></tr>';
+
+            try {
+                const response = await fetch(`${API_BASE}/api/history`);
+                const historyData = await response.json();
+                
+                tableBody.innerHTML = ''; 
+
+                if (historyData.length === 0) {
+                    tableBody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No analysis history found.</td></tr>';
+                    return;
+                }
+
+                historyData.forEach(result => {
+                    const row = tableBody.insertRow();
+                    row.id = `history-row-${result.file_id}`;
+                    const formattedDate = new Date(result.analysis_time).toLocaleString();
+                    
+                    row.innerHTML = `
+                        <td>${result.filename}</td>
+                        <td>${formattedDate}</td>
+                        <td>${(result.avg_occupancy_rate * 100).toFixed(1)}%</td>
+                        <td>${result.max_occupied_chairs}</td>
+                        <td style="display: flex; gap: 0.5rem;">
+                            <button class="btn view-report-btn" style="padding: 0.5rem 1rem;" data-fileid="${result.file_id}">View</button>
+                            <button class="btn delete-history-btn" style="padding: 0.5rem 1rem; background: var(--error);" data-fileid="${result.file_id}">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    `;
+                    
+                    row.querySelector('.view-report-btn').addEventListener('click', (e) => {
+                        viewHistoricReport(e.target.getAttribute('data-fileid'));
+                    });
+                    row.querySelector('.delete-history-btn').addEventListener('click', (e) => {
+                        deleteHistoryItem(e.target.closest('button').getAttribute('data-fileid'));
+                    });
+                });
+            } catch (error) {
+                tableBody.innerHTML = `<tr><td colspan="5" style="text-align:center; color: var(--error);">Could not load history.</td></tr>`;
+            }
+        }
+
+        async function deleteHistoryItem(fileId) {
+            if (!confirm(`Are you sure you want to delete the analysis for file ID: ${fileId}?\nThis action cannot be undone.`)) {
+                return;
+            }
+            try {
+                const response = await fetch(`${API_BASE}/api/history/${fileId}`, { method: 'DELETE' });
+                if (!response.ok) {
+                    const err = await response.json();
+                    throw new Error(err.detail || 'Failed to delete history item.');
+                }
+                document.getElementById(`history-row-${fileId}`)?.remove();
+                if (document.getElementById('historyTableBody').rows.length === 0) {
+                     document.getElementById('historyTableBody').innerHTML = '<tr><td colspan="5" style="text-align:center;">No analysis history found.</td></tr>';
+                }
+            } catch (error) {
+                showError(`Error deleting analysis: ${error.message}`);
+            }
+        }
+
+        async function viewHistoricReport(fileId) {
+            showProgress(true);
+            document.getElementById('historySection').style.display = 'none';
+
+            try {
+                const response = await fetch(`${API_BASE}/api/results/${fileId}`);
+                if (!response.ok) throw new Error("Could not retrieve the detailed report.");
+                
+                const resultsData = await response.json();
+                
+                const fullResponse = {
+                    file_id: fileId,
+                    output_video_url: `/outputs/${fileId}_output.mp4`,
+                    processing_results: resultsData
+                };
+                
+                displayResults(fullResponse);
+            } catch (error) {
+                showMainView(true);
+                showError(error.message);
+            } finally {
+                showProgress(false);
+            }
+        }
+
+        function showProgress(isShown) {
+            if (isShown) {
+                document.getElementById('mainHeader').style.display = 'none';
+                document.getElementById('mainContent').style.display = 'none';
+                document.getElementById('resultsSection').style.display = 'none';
+                document.getElementById('historySection').style.display = 'none';
+                hideError();
+                document.getElementById('progressCard').style.display = 'block';
+            } else {
+                document.getElementById('progressCard').style.display = 'none';
+            }
+        }
+
+        async function processVideo() {
+            if (!selectedFile) { showError('Please select a video file first.'); return; }
+            showProgress(true);
+            const formData = new FormData();
+            formData.append('file', selectedFile);
+            formData.append('proximity_threshold', document.getElementById('proximityThreshold').value);
+            formData.append('occupancy_frames_threshold', document.getElementById('occupancyFrames').value);
+            formData.append('motion_blur_threshold', document.getElementById('motionBlurThreshold').value);
+            try {
+                const response = await fetch(`${API_BASE}/process-video`, { method: 'POST', body: formData });
+                if (!response.ok) {
+                    const err = await response.json();
+                    throw new Error(err.detail || 'An unknown error occurred.');
+                }
+                const result = await response.json();
+                displayResults(result);
+            } catch (error) {
+                showMainView(true);
+                showError(error.message);
+            } finally {
+                showProgress(false);
+            }
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.textContent = `Error: ${message}`;
+            errorDiv.style.display = 'block';
+        }
+
+        function hideError() {
+            document.getElementById('errorMessage').style.display = 'none';
+        }
+
+        async function downloadVideo(event) {
+            const fileId = event.target.getAttribute('data-fileid');
+            if (!fileId) return;
+            const link = document.createElement('a');
+            link.href = `${API_BASE}/download/${fileId}`;
+            link.download = `processed_${fileId}.mp4`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    </script>
+</body>
+</html>
