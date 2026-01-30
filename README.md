@@ -109,7 +109,7 @@ The **AI Chair Occupancy Analytics Platform** is an enterprise-grade solution fo
 ### Analytics Visualization
 
 <img width="1839" height="662" alt="image" src="https://github.com/user-attachments/assets/2fca25d6-7141-40ad-8488-1facd03367bf" />
-<img width="2026" height="1093" alt="image" src="https://github.com/user-attachments/assets/c8950eb6-5522-4903-8542-ffb268c9a341" />
+<img width="1807" height="1042" alt="image" src="https://github.com/user-attachments/assets/046c3d06-c30c-42f8-804a-844750ac0699" />
 <img width="1896" height="1001" alt="image" src="https://github.com/user-attachments/assets/168d4c51-0ae4-4dcd-9878-74affe110dff" />
 <img width="1788" height="835" alt="image" src="https://github.com/user-attachments/assets/8c3b5ffb-cac9-40ee-9ac1-f15d2bf4daba" />
 
