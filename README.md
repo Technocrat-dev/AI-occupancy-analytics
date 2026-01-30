@@ -119,7 +119,7 @@ The **AI Chair Occupancy Analytics Platform** is an enterprise-grade solution fo
 
 ### Live Streaming
 
-<img width="1807" height="1042" alt="image" src="https://github.com/user-attachments/assets/046c3d06-c30c-42f8-804a-844750ac0699" />
+<img width="2026" height="1093" alt="image" src="https://github.com/user-attachments/assets/c8950eb6-5522-4903-8542-ffb268c9a341" />
 
 ## 🏗️ Architecture
 
