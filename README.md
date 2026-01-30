@@ -12,23 +12,23 @@
 
 ## 📋 Table of Contents
 
-- [Overview](#overview)
-- [Key Features](#key-features)
-- [Screenshots](#screenshots)
-- [Architecture](#architecture)
-- [Quick Start](#quick-start)
-- [Installation](#installation)
-- [Usage](#usage)
-- [API Reference](#api-reference)
-- [Configuration](#configuration)
-- [Project Structure](#project-structure)
-- [Advanced Features](#advanced-features)
-- [Testing](#testing)
-- [Cleanup & Maintenance](#cleanup--maintenance)
-- [Deployment](#deployment)
-- [Troubleshooting](#troubleshooting)
-- [Contributing](#contributing)
-- [License](#license)
+- [Overview](#-overview)
+- [Key Features](#-key-features)
+- [Screenshots](#-screenshots)
+- [Architecture](#%EF%B8%8F-architecture)
+- [Quick Start](#-quick-start)
+- [Installation](#-installation)
+- [Usage](#-usage)
+- [API Reference](#-api-reference)
+- [Configuration](#%EF%B8%8F-configuration)
+- [Project Structure](#-project-structure)
+- [Advanced Features](#-advanced-features)
+- [Testing](#-testing)
+- [Cleanup & Maintenance](#-cleanup--maintenance)
+- [Deployment](#-deployment)
+- [Troubleshooting](#-troubleshooting)
+- [Contributing](#-contributing)
+- [License](#-license)
 
 ---
 
@@ -1514,7 +1514,7 @@ For issues, questions, or contributions:
 
 - **GitHub Issues**: [Report a bug or request a feature](<issue-tracker-url>)
 - **Documentation**: This README and inline code documentation
-- **Email**: <support-email>
+- **Email**: <support-email>===
 
 ---
 
