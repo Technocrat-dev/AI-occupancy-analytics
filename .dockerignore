@@ -1,28 +1,56 @@
-
+# Virtual environments
 AI_Chair_Occupancy_Analytics_env/
 venv/
+.venv/
+env/
+
+# Environment files
 .env
+.env.local
 
-
+# Git
 .git/
 .gitignore
 
-
+# Python cache
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
 
-
+# Databases
 analysis.db
+occupancy.db
 *.sqlite3
 
-
+# User uploads and outputs
 uploads/
 outputs/
-data/
+data/raw_videos/
 
+# Models (auto-downloaded at runtime by ultralytics)
+# Excluding from image to reduce size - YOLO will download on first run
+*.pt
+models/
 
+# Docker files (not needed in image)
 Dockerfile
-docker-compose.yml
+docker-compose*.yml
+
+# Documentation
 README.md
+docs/
+
+# IDE
+.idea/
+.vscode/
+
+# Testing and development
+.pytest_cache/
+.coverage
+htmlcov/
+tests/
+
+# Logs
+*.log
+logs/

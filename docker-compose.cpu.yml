@@ -1,0 +1,37 @@
+version: '3.8'
+
+# CPU-only version of docker-compose for systems without NVIDIA GPU
+# Use this file with: docker-compose -f docker-compose.cpu.yml up
+
+services:
+  chair-analytics:
+    build: .
+    image: chair-occupancy-app
+    container_name: chair_project_cpu
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./uploads:/app/uploads
+      - ./outputs:/app/outputs
+      - ./analysis.db:/app/analysis.db
+    environment:
+      - API_KEY=${API_KEY:-dev-key-change-me}
+    restart: unless-stopped
+    # Note: No GPU reservations - runs on CPU only
+    # Performance will be slower but compatible with all systems
+
+  cleanup-cron:
+    image: chair-occupancy-app
+    container_name: chair_cleanup
+    command: >
+      sh -c "echo 'Cleanup service started' && while true; do 
+        echo 'Running cleanup...' && 
+        python cleanup.py --retention-days 7 --max-size-mb 5000 && 
+        echo 'Cleanup complete. Sleeping 24h...' && 
+        sleep 86400; 
+      done"
+    volumes:
+      - ./outputs:/app/outputs
+    depends_on:
+      - chair-analytics
+    restart: unless-stopped

@@ -11,7 +11,7 @@ class Settings:
     # Paths
     UPLOAD_DIR: Path = Path(os.getenv("UPLOAD_DIR", "uploads"))
     OUTPUT_DIR: Path = Path(os.getenv("OUTPUT_DIR", "outputs"))
-    MODEL_PATH: str = os.getenv("MODEL_PATH", "yolo11n.pt")
+    MODEL_PATH: str = os.getenv("MODEL_PATH", "yolo11m.pt")
     DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///./analysis.db")
     
     # Processing defaults

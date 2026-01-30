@@ -696,7 +696,7 @@ def process_video_for_api(video_path, output_video_path, settings=None):
     print(f"--- Using device: {device} ---") 
 
     # FIX #4b: Point to the new YOLOv11 model file
-    detector = YOLODetector(model_path="yolo11n.pt", device=device)
+    detector = YOLODetector(model_path="yolo11m.pt", device=device)
     tracker = DeepSort(max_age=50, n_init=2, nms_max_overlap=1.0, max_cosine_distance=0.4)
     occupancy_tracker = ChairOccupancyTracker(
         proximity_threshold=settings.get('proximity_threshold', 80), 
@@ -855,7 +855,7 @@ def main():
             1: {
                 'path': "data/raw_videos/video1.mp4",
                 # FIX #4a: Updated Path
-                'detector': YOLODetector(model_path="yolo11n.pt"),
+                'detector': YOLODetector(model_path="yolo11m.pt"),
                 'tracker': DeepSort(max_age=50, n_init=2, nms_max_overlap=1.0, max_cosine_distance=0.4),
                 'occupancy_tracker': ChairOccupancyTracker(proximity_threshold=80, occupancy_frames_threshold=5,
                                                          camera_id=1, multi_cam_manager=multi_cam_manager)
@@ -863,7 +863,7 @@ def main():
             2: {
                 'path': "data/raw_videos/video2.mp4",
                 # FIX #4a: Updated Path
-                'detector': YOLODetector(model_path="yolo11n.pt"),
+                'detector': YOLODetector(model_path="yolo11m.pt"),
                 'tracker': DeepSort(max_age=50, n_init=2, nms_max_overlap=1.0, max_cosine_distance=0.4),
                 'occupancy_tracker': ChairOccupancyTracker(proximity_threshold=80, occupancy_frames_threshold=5,
                                                          camera_id=2, multi_cam_manager=multi_cam_manager)
@@ -874,7 +874,7 @@ def main():
 
     else:
         # FIX #4a: Updated Path
-        detector = YOLODetector(model_path="yolo11n.pt")
+        detector = YOLODetector(model_path="yolo11m.pt")
         tracker = DeepSort(max_age=50, n_init=2, nms_max_overlap=1.0, max_cosine_distance=0.4),
         # Note: Tracker instantiation in original was slightly bugged with comma, fixed here
         tracker = DeepSort(max_age=50, n_init=2, nms_max_overlap=1.0, max_cosine_distance=0.4)

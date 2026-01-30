@@ -1,9 +1,11 @@
-from fastapi import FastAPI, File, UploadFile, HTTPException, Depends
+from fastapi import FastAPI, File, UploadFile, HTTPException, Depends, Security
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.encoders import jsonable_encoder
+from fastapi.security import APIKeyHeader
 from typing import List, Optional
+import os
 import schemas
 import uuid
 import shutil
@@ -22,13 +24,23 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI(
     title="Chair Occupancy Tracker API",
-    description=\"API for processing videos to track chair occupancy and provide detailed analytics.\",
-    version=\"2.0.0\"
+    description="API for processing videos to track chair occupancy and provide detailed analytics.",
+    version="2.0.0"
 )
 
 @app.get("/")
 async def read_root():
-    return FileResponse('index.html')
+    from fastapi.responses import HTMLResponse
+    with open('index.html', 'r', encoding='utf-8') as f:
+        html_content = f.read()
+    return HTMLResponse(
+        content=html_content,
+        headers={
+            "Cache-Control": "no-cache, no-store, must-revalidate",
+            "Pragma": "no-cache",
+            "Expires": "0"
+        }
+    )
 
 sql_models.Base.metadata.create_all(bind=database.engine)
 
@@ -213,6 +225,118 @@ async def delete_analysis_history(file_id: str, db: Session = Depends(get_db)):
     logger.info(f"Successfully deleted analysis record for file_id: {file_id}")
     
     return JSONResponse(content={"success": True, "message": f"Analysis {file_id} deleted successfully."})
+
+
+# --- API Key Authentication ---
+
+API_KEY = os.getenv("API_KEY", "dev-key-change-me")
+api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
+
+
+async def verify_api_key(api_key: str = Security(api_key_header)):
+    """Verify API key for protected endpoints."""
+    if not api_key or api_key != API_KEY:
+        raise HTTPException(status_code=401, detail="Invalid or missing API Key")
+    return api_key
+
+
+# --- Health Check ---
+
+@app.get("/health")
+async def health_check():
+    """Health check endpoint for monitoring."""
+    return {"status": "healthy", "version": "2.1.0"}
+
+
+# --- Live Streaming Endpoints ---
+
+@app.get("/api/stream/{camera_id}")
+async def live_stream(camera_id: int, source: str = "0"):
+    """
+    Stream live video with occupancy annotations.
+    
+    Args:
+        camera_id: Identifier for this camera stream
+        source: Camera source - can be:
+            - "0", "1", etc. for local webcam indices
+            - An RTSP URL for IP cameras (e.g., "rtsp://user:pass@192.168.1.100:554/stream")
+    
+    Returns:
+        MJPEG video stream suitable for <img> tag display
+    """
+    from services.stream import generate_mjpeg_stream
+    from services.processor import ProcessingSettings
+    
+    # Parse source - if it's a digit, treat as camera index
+    video_source = int(source) if source.isdigit() else source
+    
+    settings = ProcessingSettings()
+    
+    return StreamingResponse(
+        generate_mjpeg_stream(video_source, settings),
+        media_type="multipart/x-mixed-replace; boundary=frame"
+    )
+
+
+@app.get("/api/stream-status")
+async def stream_status():
+    """Get info about available streaming capabilities."""
+    return {
+        "streaming_available": True,
+        "supported_sources": ["webcam_index", "rtsp_url", "video_file_path"],
+        "example_usage": {
+            "webcam": "/api/stream/1?source=0",
+            "rtsp": "/api/stream/1?source=rtsp://user:pass@host:554/stream",
+            "file": "/api/stream/1?source=/path/to/video.mp4"
+        }
+    }
+
+
+# --- Recordings Download Endpoints ---
+
+@app.get("/api/recordings/{filename}")
+async def download_recording(filename: str):
+    """Download a recorded live stream video."""
+    recordings_dir = os.path.join(os.path.dirname(__file__), "outputs", "recordings")
+    file_path = os.path.join(recordings_dir, filename)
+    
+    # Security: ensure file is within recordings directory
+    if not os.path.abspath(file_path).startswith(os.path.abspath(recordings_dir)):
+        return {"error": "Invalid file path"}
+    
+    if not os.path.exists(file_path):
+        return {"error": "Recording not found"}
+    
+    return FileResponse(
+        file_path,
+        media_type="video/mp4",
+        filename=filename
+    )
+
+
+@app.get("/api/recordings")
+async def list_recordings():
+    """List all available recorded videos."""
+    recordings_dir = os.path.join(os.path.dirname(__file__), "outputs", "recordings")
+    
+    if not os.path.exists(recordings_dir):
+        return {"recordings": []}
+    
+    recordings = []
+    for f in os.listdir(recordings_dir):
+        if f.endswith('.mp4'):
+            file_path = os.path.join(recordings_dir, f)
+            recordings.append({
+                "filename": f,
+                "url": f"/api/recordings/{f}",
+                "size_mb": round(os.path.getsize(file_path) / 1024 / 1024, 2),
+                "created": os.path.getctime(file_path)
+            })
+    
+    # Sort by creation time, newest first
+    recordings.sort(key=lambda x: x["created"], reverse=True)
+    return {"recordings": recordings}
+
 
 if __name__ == "__main__":
     import uvicorn

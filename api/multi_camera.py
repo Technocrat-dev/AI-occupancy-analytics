@@ -1,10 +1,16 @@
 """
 Multi-camera API endpoints for unified analytics across multiple camera feeds.
+Uses database-backed configuration instead of in-memory global state.
 """
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel, Field
+from sqlalchemy.orm import Session
 from typing import List, Dict, Optional
+import json
 import logging
+
+import database
+import sql_models
 
 logger = logging.getLogger(__name__)
 
@@ -21,24 +27,47 @@ class CameraZone(BaseModel):
     y2: int = Field(..., description="Bottom-right Y coordinate")
 
 
-class CameraConfig(BaseModel):
-    """Configuration for a single camera."""
+class CameraConfigInput(BaseModel):
+    """Configuration for a single camera (input)."""
     camera_id: int = Field(..., description="Unique camera identifier")
     priority: int = Field(default=1, ge=1, le=10, description="Camera priority (1-10, higher = more authoritative)")
     zones: List[CameraZone] = Field(default=[], description="Priority zones for this camera")
     video_path: Optional[str] = Field(None, description="Path to video file or stream URL")
 
 
-class OverlapRegion(BaseModel):
+class CameraConfigOutput(BaseModel):
+    """Configuration for a single camera (output with DB id)."""
+    id: int
+    camera_id: int
+    priority: int
+    zones: List[CameraZone]
+    video_path: Optional[str]
+
+    class Config:
+        from_attributes = True
+
+
+class OverlapRegionInput(BaseModel):
     """Defines an overlapping region between cameras."""
     region: CameraZone = Field(..., description="The overlapping area")
     camera_ids: List[int] = Field(..., description="IDs of cameras that overlap in this region")
 
 
-class MultiCameraSetup(BaseModel):
-    """Complete multi-camera configuration."""
-    cameras: List[CameraConfig] = Field(..., description="List of camera configurations")
-    overlap_regions: List[OverlapRegion] = Field(default=[], description="Overlapping regions between cameras")
+class MultiCameraSetupInput(BaseModel):
+    """Complete multi-camera configuration (input)."""
+    name: str = Field(..., description="Unique name for this setup")
+    cameras: List[CameraConfigInput] = Field(..., description="List of camera configurations")
+    overlap_regions: List[OverlapRegionInput] = Field(default=[], description="Overlapping regions between cameras")
+
+
+class MultiCameraSetupOutput(BaseModel):
+    """Complete multi-camera configuration (output)."""
+    id: int
+    name: str
+    cameras: List[CameraConfigOutput]
+    
+    class Config:
+        from_attributes = True
 
 
 class UnifiedStats(BaseModel):
@@ -49,22 +78,24 @@ class UnifiedStats(BaseModel):
     per_camera_stats: Dict[int, dict]
 
 
-# --- In-Memory State (for demo; use Redis/DB in production) ---
+# --- Database Dependency ---
 
-_current_setup: Optional[MultiCameraSetup] = None
-_unified_stats: Optional[UnifiedStats] = None
+def get_db():
+    db = database.SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
 
 # --- Endpoints ---
 
 @router.post("/setup", response_model=dict)
-async def configure_multi_camera(setup: MultiCameraSetup):
+async def configure_multi_camera(setup: MultiCameraSetupInput, db: Session = Depends(get_db)):
     """
     Configure multi-camera zones, priorities, and overlap regions.
-    This must be called before processing multiple camera feeds.
+    Creates or updates the configuration in the database.
     """
-    global _current_setup
-    
     # Validate camera IDs are unique
     camera_ids = [cam.camera_id for cam in setup.cameras]
     if len(camera_ids) != len(set(camera_ids)):
@@ -79,77 +110,256 @@ async def configure_multi_camera(setup: MultiCameraSetup):
                     detail=f"Overlap region references unknown camera_id: {cam_id}"
                 )
     
-    _current_setup = setup
+    # Check if setup with this name already exists
+    existing = db.query(sql_models.MultiCameraSetup).filter(
+        sql_models.MultiCameraSetup.name == setup.name
+    ).first()
     
-    logger.info(f"Multi-camera setup configured: {len(setup.cameras)} cameras, {len(setup.overlap_regions)} overlap regions")
+    if existing:
+        # Delete old setup and recreate
+        db.delete(existing)
+        db.commit()
+    
+    # Create new setup
+    db_setup = sql_models.MultiCameraSetup(name=setup.name)
+    db.add(db_setup)
+    db.flush()  # Get the ID
+    
+    # Add cameras
+    for cam in setup.cameras:
+        db_camera = sql_models.CameraConfig(
+            setup_id=db_setup.id,
+            camera_id=cam.camera_id,
+            priority=cam.priority,
+            video_path=cam.video_path,
+            zones_json=json.dumps([z.model_dump() for z in cam.zones])
+        )
+        db.add(db_camera)
+    
+    # Add overlap regions
+    for overlap in setup.overlap_regions:
+        db_overlap = sql_models.OverlapRegion(
+            setup_id=db_setup.id,
+            region_json=json.dumps(overlap.region.model_dump()),
+            camera_ids_json=json.dumps(overlap.camera_ids)
+        )
+        db.add(db_overlap)
+    
+    db.commit()
+    
+    logger.info(f"Multi-camera setup '{setup.name}' saved: {len(setup.cameras)} cameras, {len(setup.overlap_regions)} overlap regions")
     
     return {
         "success": True,
         "message": f"Configured {len(setup.cameras)} cameras",
+        "setup_id": db_setup.id,
         "cameras": [{"id": c.camera_id, "priority": c.priority, "zones": len(c.zones)} for c in setup.cameras]
     }
 
 
-@router.get("/setup", response_model=Optional[MultiCameraSetup])
-async def get_current_setup():
-    """Get the current multi-camera configuration."""
-    if _current_setup is None:
-        raise HTTPException(status_code=404, detail="No multi-camera setup configured")
-    return _current_setup
+@router.get("/setup", response_model=List[dict])
+async def list_setups(db: Session = Depends(get_db)):
+    """List all saved multi-camera setups."""
+    setups = db.query(sql_models.MultiCameraSetup).all()
+    return [
+        {
+            "id": s.id,
+            "name": s.name,
+            "camera_count": len(s.cameras),
+            "created_at": s.created_at.isoformat() if s.created_at else None
+        }
+        for s in setups
+    ]
 
 
-@router.delete("/setup")
-async def clear_setup():
-    """Clear the current multi-camera configuration."""
-    global _current_setup, _unified_stats
-    _current_setup = None
-    _unified_stats = None
-    return {"success": True, "message": "Multi-camera setup cleared"}
-
-
-@router.get("/stats", response_model=Optional[UnifiedStats])
-async def get_unified_stats():
-    """
-    Get unified occupancy statistics across all configured cameras.
-    Note: This returns cached stats from the last processing run.
-    """
-    if _unified_stats is None:
-        raise HTTPException(
-            status_code=404, 
-            detail="No unified stats available. Process videos first."
-        )
-    return _unified_stats
-
-
-@router.post("/process")
-async def process_multi_camera():
-    """
-    Process multiple camera feeds with the current configuration.
+@router.get("/setup/{setup_id}")
+async def get_setup(setup_id: int, db: Session = Depends(get_db)):
+    """Get a specific multi-camera configuration by ID."""
+    setup = db.query(sql_models.MultiCameraSetup).filter(
+        sql_models.MultiCameraSetup.id == setup_id
+    ).first()
     
-    Note: This is a placeholder for the full implementation.
-    Full implementation would:
-    1. Load videos from each camera's video_path
-    2. Run detection and tracking in parallel
-    3. Apply zone priorities and overlap resolution
-    4. Generate unified analytics
-    """
-    if _current_setup is None:
-        raise HTTPException(
-            status_code=400, 
-            detail="No multi-camera setup configured. Call POST /api/multi-camera/setup first."
-        )
+    if not setup:
+        raise HTTPException(status_code=404, detail="Multi-camera setup not found")
     
-    # Placeholder response - actual implementation would process videos
+    cameras = []
+    for cam in setup.cameras:
+        zones = json.loads(cam.zones_json) if cam.zones_json else []
+        cameras.append({
+            "camera_id": cam.camera_id,
+            "priority": cam.priority,
+            "video_path": cam.video_path,
+            "zones": zones
+        })
+    
+    # Get overlap regions
+    overlaps = db.query(sql_models.OverlapRegion).filter(
+        sql_models.OverlapRegion.setup_id == setup_id
+    ).all()
+    
+    overlap_regions = []
+    for o in overlaps:
+        overlap_regions.append({
+            "region": json.loads(o.region_json),
+            "camera_ids": json.loads(o.camera_ids_json)
+        })
+    
     return {
-        "success": True,
-        "message": "Multi-camera processing is configured but not yet implemented for API mode",
-        "configured_cameras": len(_current_setup.cameras),
-        "hint": "Use the standalone process_video.py with USE_MULTI_CAMERA=True for now"
+        "id": setup.id,
+        "name": setup.name,
+        "cameras": cameras,
+        "overlap_regions": overlap_regions,
+        "created_at": setup.created_at.isoformat() if setup.created_at else None
     }
 
 
-# --- Helper to include router in main app ---
+@router.delete("/setup/{setup_id}")
+async def delete_setup(setup_id: int, db: Session = Depends(get_db)):
+    """Delete a multi-camera configuration."""
+    setup = db.query(sql_models.MultiCameraSetup).filter(
+        sql_models.MultiCameraSetup.id == setup_id
+    ).first()
+    
+    if not setup:
+        raise HTTPException(status_code=404, detail="Multi-camera setup not found")
+    
+    db.delete(setup)
+    db.commit()
+    
+    return {"success": True, "message": f"Setup '{setup.name}' deleted"}
 
-def include_router(app):
-    """Include the multi-camera router in a FastAPI app."""
-    app.include_router(router)
+
+@router.post("/process/{setup_id}")
+async def process_multi_camera(setup_id: int, db: Session = Depends(get_db)):
+    """
+    Process multiple camera feeds with the specified configuration.
+    
+    Uses the refactored processor to analyze each camera's video and
+    merge results using the MultiCameraManager.
+    """
+    from process_video import MultiCameraManager
+    from services.processor import ProcessingSettings, process_frames
+    from services.analytics import create_interaction_ledger, analyze_person_metrics, analyze_chair_metrics
+    
+    # Load setup from database
+    setup = db.query(sql_models.MultiCameraSetup).filter(
+        sql_models.MultiCameraSetup.id == setup_id
+    ).first()
+    
+    if not setup:
+        raise HTTPException(status_code=404, detail="Multi-camera setup not found")
+    
+    if not setup.cameras:
+        raise HTTPException(status_code=400, detail="No cameras configured in this setup")
+    
+    # Initialize multi-camera manager
+    multi_cam_manager = MultiCameraManager()
+    
+    # Configure zones and priorities
+    for cam in setup.cameras:
+        zones = json.loads(cam.zones_json) if cam.zones_json else []
+        zone_tuples = [(z['x1'], z['y1'], z['x2'], z['y2']) for z in zones]
+        multi_cam_manager.set_camera_zones(cam.camera_id, zone_tuples, priority=cam.priority)
+    
+    # Configure overlap regions
+    overlaps = db.query(sql_models.OverlapRegion).filter(
+        sql_models.OverlapRegion.setup_id == setup_id
+    ).all()
+    
+    for o in overlaps:
+        region = json.loads(o.region_json)
+        camera_ids = json.loads(o.camera_ids_json)
+        multi_cam_manager.add_overlap_region(
+            [region['x1'], region['y1'], region['x2'], region['y2']],
+            camera_ids
+        )
+    
+    # Process each camera
+    all_camera_results = {}
+    per_camera_stats = {}
+    errors = []
+    
+    for cam in setup.cameras:
+        if not cam.video_path:
+            logger.warning(f"Camera {cam.camera_id} has no video path, skipping")
+            errors.append(f"Camera {cam.camera_id}: No video path specified")
+            continue
+        
+        try:
+            from pathlib import Path
+            video_file = Path(cam.video_path)
+            if not video_file.exists():
+                error_msg = f"Camera {cam.camera_id}: Video file not found: {cam.video_path}"
+                logger.error(error_msg)
+                errors.append(error_msg)
+                continue
+                
+            settings = ProcessingSettings()
+            
+            # Collect results from this camera
+            camera_occupancy = []
+            camera_chairs = {}
+            
+            for result in process_frames(cam.video_path, settings, annotate_frames=False):
+                camera_chairs = {
+                    chair_id: {
+                        'center': chair_data['center'],
+                        'bbox': chair_data['bbox'],
+                        'is_occupied': result.chair_person_mapping.get(chair_id) is not None
+                    }
+                    for chair_id, chair_data in result.chairs.items()
+                }
+                camera_occupancy.append({
+                    'frame': result.frame_number,
+                    'occupied': result.occupied_chairs,
+                    'total': result.total_chairs,
+                    'rate': result.occupancy_rate
+                })
+            
+            all_camera_results[cam.camera_id] = camera_chairs
+            per_camera_stats[cam.camera_id] = {
+                "total_frames": len(camera_occupancy),
+                "avg_occupancy_rate": sum(o['rate'] for o in camera_occupancy) / len(camera_occupancy) if camera_occupancy else 0
+            }
+        except Exception as e:
+            error_msg = f"Camera {cam.camera_id}: Processing error - {str(e)}"
+            logger.error(error_msg)
+            errors.append(error_msg)
+    
+    # Get unified stats using the manager
+    unified = multi_cam_manager.get_unified_occupancy_count(all_camera_results)
+    
+    return {
+        "success": len(errors) == 0 or len(all_camera_results) > 0,
+        "setup_name": setup.name,
+        "unified_stats": {
+            "total_chairs": unified['total_chairs'],
+            "occupied_chairs": unified['occupied_chairs'],
+            "occupancy_rate": unified['occupancy_rate']
+        },
+        "per_camera_stats": per_camera_stats,
+        "errors": errors,
+        "cameras_processed": len(all_camera_results),
+        "cameras_total": len(setup.cameras)
+    }
+
+
+@router.get("/stats/{setup_id}")
+async def get_setup_stats(setup_id: int, db: Session = Depends(get_db)):
+    """
+    Get the most recent processing stats for a setup.
+    Note: Currently returns empty as stats are not persisted between requests.
+    For real-time stats, use the live streaming endpoints.
+    """
+    setup = db.query(sql_models.MultiCameraSetup).filter(
+        sql_models.MultiCameraSetup.id == setup_id
+    ).first()
+    
+    if not setup:
+        raise HTTPException(status_code=404, detail="Multi-camera setup not found")
+    
+    return {
+        "setup_id": setup_id,
+        "setup_name": setup.name,
+        "message": "Use POST /api/multi-camera/process/{setup_id} to get fresh stats"
+    }

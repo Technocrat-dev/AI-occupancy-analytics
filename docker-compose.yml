@@ -8,16 +8,32 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      
       - ./uploads:/app/uploads
       - ./outputs:/app/outputs
       - ./analysis.db:/app/analysis.db
-    
+    environment:
+      - API_KEY=${API_KEY:-dev-key-change-me}
     deploy:
       resources:
         reservations:
           devices:
             - driver: nvidia
               count: 1
-              capabilities: [gpu]
+              capabilities: [ gpu ]
+    restart: unless-stopped
+
+  cleanup-cron:
+    image: chair-occupancy-app
+    container_name: chair_cleanup
+    command: >
+      sh -c "echo 'Cleanup service started' && while true; do 
+        echo 'Running cleanup...' && 
+        python cleanup.py --retention-days 7 --max-size-mb 5000 && 
+        echo 'Cleanup complete. Sleeping 24h...' && 
+        sleep 86400; 
+      done"
+    volumes:
+      - ./outputs:/app/outputs
+    depends_on:
+      - chair-analytics
     restart: unless-stopped

@@ -151,6 +151,7 @@
             letter-spacing: -1px;
             background: linear-gradient(90deg, var(--primary), var(--secondary));
             -webkit-background-clip: text;
+            background-clip: text;
             -webkit-text-fill-color: transparent;
             margin-bottom: 0.5rem;
         }
@@ -320,6 +321,161 @@
         .asset-table th {
             color: var(--text-dark);
         }
+
+        /* Mode Tabs */
+        .mode-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .mode-tab {
+            background: var(--bg-light);
+            border: 1px solid var(--border-color);
+            color: var(--text-dark);
+            padding: 0.75rem 1.5rem;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .mode-tab:hover {
+            border-color: var(--primary);
+            color: var(--text-light);
+        }
+
+        .mode-tab.active {
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            border-color: transparent;
+            color: white;
+        }
+
+        .mode-content {
+            display: none;
+        }
+
+        .mode-content.active {
+            display: block;
+        }
+
+        /* Live View Styles */
+        .live-stream-container {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .live-video-wrapper {
+            background: var(--bg-dark);
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+            min-height: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .live-video-wrapper img {
+            max-width: 100%;
+            max-height: 500px;
+            object-fit: contain;
+        }
+
+        .live-placeholder {
+            text-align: center;
+            color: var(--text-dark);
+        }
+
+        .live-placeholder i {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        .live-controls {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .live-controls input {
+            flex: 1;
+            min-width: 200px;
+            background: var(--bg-dark);
+            border: 1px solid var(--border-color);
+            color: var(--text-light);
+            border-radius: 8px;
+            padding: 0.75rem;
+        }
+
+        .live-stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+        }
+
+        .live-stat-card {
+            background: var(--bg-dark);
+            border-radius: 12px;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .live-stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .live-stat-label {
+            color: var(--text-dark);
+            font-size: 0.9rem;
+        }
+
+        /* Multi-Camera Styles */
+        .camera-config-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .camera-config-item {
+            background: var(--bg-dark);
+            border-radius: 12px;
+            padding: 1rem;
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr auto;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .camera-config-item input {
+            background: var(--bg-light);
+            border: 1px solid var(--border-color);
+            color: var(--text-light);
+            border-radius: 8px;
+            padding: 0.5rem;
+        }
+
+        .btn-small {
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+        }
+
+        .btn-danger {
+            background: var(--error);
+        }
+
+        .btn-secondary {
+            background: var(--bg-light);
+            border: 1px solid var(--border-color);
+        }
     </style>
 </head>
 
@@ -343,42 +499,130 @@
             </div>
         </header>
 
+        <!-- Mode Tabs -->
+        <div class="mode-tabs" id="modeTabs">
+            <button class="mode-tab active" data-mode="upload">
+                <i class="fas fa-upload"></i> Single Camera
+            </button>
+            <button class="mode-tab" data-mode="live">
+                <i class="fas fa-broadcast-tower"></i> Live View
+            </button>
+            <button class="mode-tab" data-mode="multicam">
+                <i class="fas fa-video"></i> Multi-Camera
+            </button>
+        </div>
+
         <div id="mainContent">
-            <section class="glass-card" id="uploadCard">
-                <div class="file-upload" id="fileUpload">
-                    <div class="upload-area">
-                        <i class="fas fa-video"></i>
-                        <h3>Drop video file here or click to browse</h3>
+            <!-- File Upload Mode -->
+            <div class="mode-content active" id="uploadMode">
+                <section class="glass-card" id="uploadCard">
+                    <div class="file-upload" id="fileUpload">
+                        <div class="upload-area">
+                            <i class="fas fa-video"></i>
+                            <h3>Drop video file here or click to browse</h3>
+                        </div>
+                        <input type="file" id="videoFile" accept="video/*" style="display: none;">
+                        <div class="selected-file-info" id="selectedFileInfo" style="display: none;">
+                            <p><i class="fas fa-file-video"></i> <strong>File:</strong> <span id="fileName"></span>
+                                (<span id="fileSize"></span>)</p>
+                        </div>
                     </div>
-                    <input type="file" id="videoFile" accept="video/*" style="display: none;">
-                    <div class="selected-file-info" id="selectedFileInfo" style="display: none;">
-                        <p><i class="fas fa-file-video"></i> <strong>File:</strong> <span id="fileName"></span> (<span
-                                id="fileSize"></span>)</p>
+                    <div class="settings-grid">
+                        <div class="setting-group">
+                            <label for="proximityThreshold">Proximity Threshold (px)</label>
+                            <input type="number" id="proximityThreshold" value="80"
+                                title="How close a person must be to a chair.">
+                        </div>
+                        <div class="setting-group">
+                            <label for="occupancyFrames">Occupancy Frames</label>
+                            <input type="number" id="occupancyFrames" value="5"
+                                title="Number of consecutive frames to confirm occupancy.">
+                        </div>
+                        <div class="setting-group">
+                            <label for="motionBlurThreshold">Motion Blur Threshold</label>
+                            <input type="number" id="motionBlurThreshold" value="100"
+                                title="Sensitivity for detecting and skipping blurry frames.">
+                        </div>
+                        <div class="setting-group" style="display: flex; align-items: flex-end;">
+                            <button class="btn" id="processBtn" disabled>
+                                <i class="fas fa-rocket"></i> Analyze Video
+                            </button>
+                        </div>
                     </div>
-                </div>
-                <div class="settings-grid">
-                    <div class="setting-group">
-                        <label for="proximityThreshold">Proximity Threshold (px)</label>
-                        <input type="number" id="proximityThreshold" value="80"
-                            title="How close a person must be to a chair.">
+                </section>
+            </div>
+
+            <!-- Live View Mode -->
+            <div class="mode-content" id="liveMode">
+                <section class="glass-card">
+                    <h2><i class="fas fa-broadcast-tower"></i> Live Camera Feed</h2>
+                    <div class="live-stream-container">
+                        <div class="live-controls">
+                            <input type="text" id="liveSource" placeholder="Camera source: 0 for webcam, or RTSP URL"
+                                value="0">
+                            <button class="btn" id="startStreamBtn">
+                                <i class="fas fa-play"></i> Start Stream
+                            </button>
+                            <button class="btn btn-secondary" id="stopStreamBtn" style="display:none;">
+                                <i class="fas fa-stop"></i> Stop
+                            </button>
+                        </div>
+                        <div class="live-video-wrapper" id="liveVideoWrapper">
+                            <div class="live-placeholder" id="livePlaceholder">
+                                <i class="fas fa-video-slash"></i>
+                                <p>Enter a camera source and click "Start Stream"</p>
+                            </div>
+                            <canvas id="liveStreamCanvas" style="display:none; width:100%; max-height:500px;"></canvas>
+                        </div>
+                        <div class="live-stats-row" id="liveStatsRow">
+                            <div class="live-stat-card">
+                                <div class="live-stat-value" id="liveChairsCount">-</div>
+                                <div class="live-stat-label">Total Chairs</div>
+                            </div>
+                            <div class="live-stat-card">
+                                <div class="live-stat-value" id="liveOccupiedCount">-</div>
+                                <div class="live-stat-label">Occupied</div>
+                            </div>
+                            <div class="live-stat-card">
+                                <div class="live-stat-value" id="liveOccupancyRate">-</div>
+                                <div class="live-stat-label">Occupancy Rate</div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="setting-group">
-                        <label for="occupancyFrames">Occupancy Frames</label>
-                        <input type="number" id="occupancyFrames" value="5"
-                            title="Number of consecutive frames to confirm occupancy.">
+                </section>
+            </div>
+
+            <!-- Multi-Camera Mode -->
+            <div class="mode-content" id="multicamMode">
+                <section class="glass-card">
+                    <h2><i class="fas fa-video"></i> Multi-Camera Setup</h2>
+                    <p style="color: var(--text-dark); margin-bottom: 1.5rem;">
+                        Configure multiple cameras with priorities and zones for unified analytics.
+                    </p>
+
+                    <div class="camera-config-list" id="cameraConfigList">
+                        <!-- Camera configs will be added here -->
                     </div>
-                    <div class="setting-group">
-                        <label for="motionBlurThreshold">Motion Blur Threshold</label>
-                        <input type="number" id="motionBlurThreshold" value="100"
-                            title="Sensitivity for detecting and skipping blurry frames.">
-                    </div>
-                    <div class="setting-group" style="display: flex; align-items: flex-end;">
-                        <button class="btn" id="processBtn" disabled>
-                            <i class="fas fa-rocket"></i> Analyze Video
+
+                    <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.5rem;">
+                        <button class="btn btn-secondary" id="addCameraBtn">
+                            <i class="fas fa-plus"></i> Add Camera
+                        </button>
+                        <input type="text" id="setupName" placeholder="Setup name (e.g., Office Floor 1)"
+                            style="flex:1; min-width:200px; background:var(--bg-dark); border:1px solid var(--border-color); color:var(--text-light); border-radius:8px; padding:0.75rem;">
+                        <button class="btn" id="saveSetupBtn">
+                            <i class="fas fa-save"></i> Save Setup
                         </button>
                     </div>
-                </div>
-            </section>
+
+                    <hr style="border-color: var(--border-color); margin: 2rem 0;">
+
+                    <h3 style="margin-bottom: 1rem;"><i class="fas fa-list"></i> Saved Setups</h3>
+                    <div id="savedSetupsList">
+                        <p style="color: var(--text-dark);">Loading saved setups...</p>
+                    </div>
+                </section>
+            </div>
         </div>
 
         <section class="glass-card" id="progressCard" style="display: none;">
@@ -495,12 +739,12 @@
                 <div class="glass-card">
                     <h2><i class="fas fa-tachometer-alt"></i> Dashboard</h2>
                     <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">
-                        <div class="stat-card"><div class="stat-value">${stats.total_chairs_detected}</div><div class="stat-label"><i class="fas fa-chair"></i> Chairs Detected</div></div>
-                        <div class="stat-card"><div class="stat-value">${stats.max_occupied_chairs}</div><div class="stat-label"><i class="fas fa-users"></i> Peak Occupancy</div></div>
-                        <div class="stat-card"><div class="stat-value">${(stats.average_occupancy_rate * 100).toFixed(1)}%</div><div class="stat-label"><i class="fas fa-percentage"></i> Avg. Utilization</div></div>
-                        <div class="stat-card"><div class="stat-value">${stats.interaction_ledger.length}</div><div class="stat-label"><i class="fas fa-exchange-alt"></i> Total Interactions</div></div>
-                        <div class="stat-card"><div class="stat-value">${(stats.activity_windows.peak_rate * 100).toFixed(1)}%</div><div class="stat-label" title="${stats.activity_windows.peak_window}"><i class="fas fa-fire"></i> Peak Activity Rate</div></div>
-                        <div class="stat-card"><div class="stat-value">${(stats.activity_windows.lowest_rate * 100).toFixed(1)}%</div><div class="stat-label" title="${stats.activity_windows.lowest_window}"><i class="fas fa-snowflake"></i> Lowest Activity Rate</div></div>
+                        <div class="stat-card"><div class="stat-value">${stats.total_chairs_detected || 0}</div><div class="stat-label"><i class="fas fa-chair"></i> Chairs Detected</div></div>
+                        <div class="stat-card"><div class="stat-value">${stats.max_occupied_chairs || 0}</div><div class="stat-label"><i class="fas fa-users"></i> Peak Occupancy</div></div>
+                        <div class="stat-card"><div class="stat-value">${((stats.average_occupancy_rate || 0) * 100).toFixed(1)}%</div><div class="stat-label"><i class="fas fa-percentage"></i> Avg. Utilization</div></div>
+                        <div class="stat-card"><div class="stat-value">${(stats.interaction_ledger || []).length}</div><div class="stat-label"><i class="fas fa-exchange-alt"></i> Total Interactions</div></div>
+                        <div class="stat-card"><div class="stat-value">${((stats.activity_windows?.peak_rate || 0) * 100).toFixed(1)}%</div><div class="stat-label" title="${stats.activity_windows?.peak_window || 'N/A'}"><i class="fas fa-fire"></i> Peak Activity Rate</div></div>
+                        <div class="stat-card"><div class="stat-value">${((stats.activity_windows?.lowest_rate || 0) * 100).toFixed(1)}%</div><div class="stat-label" title="${stats.activity_windows?.lowest_window || 'N/A'}"><i class="fas fa-snowflake"></i> Lowest Activity Rate</div></div>
                     </div>
                 </div>
                 <div class="glass-card">
@@ -591,6 +835,7 @@
 
         function showMainView(display = true) {
             document.getElementById('mainHeader').style.display = display ? 'block' : 'none';
+            document.getElementById('modeTabs').style.display = display ? 'flex' : 'none';
             document.getElementById('mainContent').style.display = display ? 'block' : 'none';
             document.getElementById('historySection').style.display = 'none';
             document.getElementById('resultsSection').style.display = 'none';
@@ -693,6 +938,7 @@
         function showProgress(isShown) {
             if (isShown) {
                 document.getElementById('mainHeader').style.display = 'none';
+                document.getElementById('modeTabs').style.display = 'none';
                 document.getElementById('mainContent').style.display = 'none';
                 document.getElementById('resultsSection').style.display = 'none';
                 document.getElementById('historySection').style.display = 'none';
@@ -747,6 +993,477 @@
             link.click();
             document.body.removeChild(link);
         }
+
+        // ========== MODE SWITCHING ==========
+        document.querySelectorAll('.mode-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                // Update tab styles
+                document.querySelectorAll('.mode-tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+
+                // Show corresponding content
+                const mode = tab.getAttribute('data-mode');
+                document.querySelectorAll('.mode-content').forEach(c => c.classList.remove('active'));
+                document.getElementById(mode + 'Mode').classList.add('active');
+            });
+        });
+
+        // ========== LIVE STREAMING ==========
+        let liveStreamActive = false;
+        let liveStatsWs = null;
+
+        document.getElementById('startStreamBtn').addEventListener('click', startLiveStream);
+        document.getElementById('stopStreamBtn').addEventListener('click', stopLiveStream);
+
+        let videoStreamWs = null;
+        let streamCanvas = null;
+        let streamCtx = null;
+        let lastFrameData = null;
+        let streamStats = { total_chairs: 0, occupied_chairs: 0, occupancy_rate: 0 };
+        let recordedVideoUrl = null;
+        let recordedFrameCount = 0;
+
+        function startLiveStream() {
+            const source = document.getElementById('liveSource').value || '0';
+            const cameraId = '1';
+
+            // Setup canvas
+            streamCanvas = document.getElementById('liveStreamCanvas');
+            streamCtx = streamCanvas.getContext('2d');
+
+            // Show canvas and hide placeholder
+            streamCanvas.style.display = 'block';
+            document.getElementById('livePlaceholder').style.display = 'none';
+
+            // Update button visibility
+            document.getElementById('startStreamBtn').style.display = 'none';
+            document.getElementById('stopStreamBtn').style.display = 'inline-block';
+
+            liveStreamActive = true;
+
+            // Connect to WebSocket for video stream
+            const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsUrl = `${wsProtocol}//${window.location.host}/ws/video-stream/${cameraId}?source=${encodeURIComponent(source)}`;
+
+            console.log('Connecting to video stream:', wsUrl);
+            videoStreamWs = new WebSocket(wsUrl);
+
+            videoStreamWs.onopen = () => {
+                console.log('Video stream WebSocket connected');
+            };
+
+            videoStreamWs.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+
+                if (data.type === 'frame') {
+                    // Draw frame to canvas
+                    const img = new Image();
+                    img.onload = () => {
+                        // Set canvas size to match image
+                        if (streamCanvas.width !== img.width || streamCanvas.height !== img.height) {
+                            streamCanvas.width = img.width;
+                            streamCanvas.height = img.height;
+                        }
+                        streamCtx.drawImage(img, 0, 0);
+                        lastFrameData = data.frame;
+                    };
+                    img.src = 'data:image/jpeg;base64,' + data.frame;
+
+                    // Update stats
+                    if (data.stats) {
+                        streamStats = data.stats;
+                        document.getElementById('liveChairsCount').textContent = data.stats.total_chairs;
+                        document.getElementById('liveOccupiedCount').textContent = data.stats.occupied_chairs;
+                        const rate = (data.stats.occupancy_rate * 100).toFixed(1) + '%';
+                        document.getElementById('liveOccupancyRate').textContent = rate;
+                    }
+                } else if (data.type === 'complete') {
+                    // Stream completed with recorded video
+                    console.log('Stream recording complete:', data);
+                    if (data.video_url) {
+                        recordedVideoUrl = data.video_url;
+                        recordedFrameCount = data.frame_count || 0;
+                    }
+                    // Close WebSocket and finish stop process
+                    if (videoStreamWs) {
+                        videoStreamWs.close();
+                        videoStreamWs = null;
+                    }
+                    finishStopLiveStream();
+                } else if (data.type === 'error') {
+                    console.error('Stream error:', data.message);
+                    showError('Live stream error: ' + data.message);
+                }
+            };
+
+            videoStreamWs.onclose = () => {
+                console.log('Video stream WebSocket closed');
+                // If we haven't finished stop yet (e.g., server closed connection)
+                if (!liveStreamActive && document.getElementById('stopStreamBtn').style.display !== 'none') {
+                    finishStopLiveStream();
+                }
+            };
+
+            videoStreamWs.onerror = (error) => {
+                console.error('Video stream WebSocket error:', error);
+                showError('Failed to connect to video stream');
+            };
+        }
+
+        function stopLiveStream() {
+            liveStreamActive = false;
+
+            // Send stop command - don't close WebSocket yet, wait for 'complete' message
+            if (videoStreamWs) {
+                try {
+                    videoStreamWs.send(JSON.stringify({ command: 'stop' }));
+                } catch (e) {
+                    // If send fails, close immediately
+                    videoStreamWs.close();
+                    videoStreamWs = null;
+                    finishStopLiveStream();
+                }
+            } else {
+                finishStopLiveStream();
+            }
+        }
+
+        function finishStopLiveStream() {
+            // Hide canvas and show "Livestream stopped" message
+            const canvas = document.getElementById('liveStreamCanvas');
+            canvas.style.display = 'none';
+
+            const placeholder = document.getElementById('livePlaceholder');
+            placeholder.innerHTML = `<p style="font-size: 1.2rem;">Livestream stopped</p>`;
+            placeholder.style.display = 'flex';
+
+            // Update button visibility
+            document.getElementById('startStreamBtn').style.display = 'inline-block';
+            document.getElementById('stopStreamBtn').style.display = 'none';
+
+            // Show summary stats
+            console.log('Stream stopped. Final stats:', streamStats);
+            console.log('Recorded video URL:', recordedVideoUrl);
+
+            // Show results section with download button
+            showStreamResults();
+        }
+
+        function showStreamResults() {
+            // Create a results section similar to file upload
+            const resultsHtml = `
+                <div class="glass-card" style="margin-top: 1rem;">
+                    <h3><i class="fas fa-check-circle"></i> Live Stream Session Complete</h3>
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin: 1rem 0;">
+                        <div class="live-stat-card">
+                            <div class="live-stat-value">${streamStats.total_chairs}</div>
+                            <div class="live-stat-label">Chairs Detected</div>
+                        </div>
+                        <div class="live-stat-card">
+                            <div class="live-stat-value">${streamStats.occupied_chairs}</div>
+                            <div class="live-stat-label">Occupied</div>
+                        </div>
+                        <div class="live-stat-card">
+                            <div class="live-stat-value">${(streamStats.occupancy_rate * 100).toFixed(1)}%</div>
+                            <div class="live-stat-label">Occupancy Rate</div>
+                        </div>
+                    </div>
+                    <button class="btn" onclick="downloadRecordedVideo()" style="margin-right: 1rem;">
+                        <i class="fas fa-video"></i> Download Video
+                    </button>
+                    <button class="btn btn-secondary" onclick="resetLiveStream()">
+                        <i class="fas fa-redo"></i> New Session
+                    </button>
+                </div>
+            `;
+
+            // Insert after the live stats row
+            let resultsContainer = document.getElementById('liveStreamResults');
+            if (!resultsContainer) {
+                resultsContainer = document.createElement('div');
+                resultsContainer.id = 'liveStreamResults';
+                document.getElementById('liveStatsRow').insertAdjacentElement('afterend', resultsContainer);
+            }
+            resultsContainer.innerHTML = resultsHtml;
+        }
+
+        function downloadRecordedVideo() {
+            if (!recordedVideoUrl) {
+                showError('No recorded video available');
+                return;
+            }
+
+            const link = document.createElement('a');
+            link.href = recordedVideoUrl;
+            link.download = `live_recording_${Date.now()}.mp4`;
+            link.click();
+        }
+
+        function resetLiveStream() {
+            const resultsContainer = document.getElementById('liveStreamResults');
+            if (resultsContainer) {
+                resultsContainer.remove();
+            }
+
+            // Reset canvas
+            const canvas = document.getElementById('liveStreamCanvas');
+            canvas.style.display = 'none';
+
+            // Restore original placeholder text
+            const placeholder = document.getElementById('livePlaceholder');
+            placeholder.innerHTML = `
+                <i class="fas fa-video-slash"></i>
+                <p>Enter a camera source and click "Start Stream"</p>
+            `;
+            placeholder.style.display = 'flex';
+
+            // Reset stats
+            document.getElementById('liveChairsCount').textContent = '-';
+            document.getElementById('liveOccupiedCount').textContent = '-';
+            document.getElementById('liveOccupancyRate').textContent = '-';
+
+            lastFrameData = null;
+            streamStats = { total_chairs: 0, occupied_chairs: 0, occupancy_rate: 0 };
+            recordedVideoUrl = null;
+            recordedFrameCount = 0;
+        }
+
+        // Legacy function - no longer needed with new WebSocket approach
+        function connectLiveStatsWs(cameraId) {
+            // Stats are now sent with video frames
+        }
+
+        // ========== MULTI-CAMERA CONFIGURATION ==========
+        let cameraConfigs = [];
+        let nextCameraId = 1;
+
+        document.getElementById('addCameraBtn').addEventListener('click', addCameraConfig);
+        document.getElementById('saveSetupBtn').addEventListener('click', saveMultiCameraSetup);
+
+        function addCameraConfig() {
+            const config = {
+                camera_id: nextCameraId++,
+                priority: 1,
+                video_path: ''
+            };
+            cameraConfigs.push(config);
+            renderCameraConfigs();
+        }
+
+        function removeCameraConfig(index) {
+            cameraConfigs.splice(index, 1);
+            renderCameraConfigs();
+        }
+
+        function renderCameraConfigs() {
+            const container = document.getElementById('cameraConfigList');
+            if (cameraConfigs.length === 0) {
+                container.innerHTML = '<p style="color: var(--text-dark);">No cameras configured. Click "Add Camera" to start.</p>';
+                return;
+            }
+
+            container.innerHTML = cameraConfigs.map((config, index) => `
+                <div class="camera-config-item">
+                    <div>
+                        <label style="color: var(--text-dark); font-size: 0.875rem;">Camera ID</label>
+                        <input type="number" value="${config.camera_id}" 
+                               onchange="cameraConfigs[${index}].camera_id = parseInt(this.value)">
+                    </div>
+                    <div>
+                        <label style="color: var(--text-dark); font-size: 0.875rem;">Priority (1-10)</label>
+                        <input type="number" min="1" max="10" value="${config.priority}"
+                               onchange="cameraConfigs[${index}].priority = parseInt(this.value)">
+                    </div>
+                    <div>
+                        <label style="color: var(--text-dark); font-size: 0.875rem;">Video Path / URL</label>
+                        <input type="text" value="${config.video_path}" placeholder="path/to/video.mp4"
+                               onchange="cameraConfigs[${index}].video_path = this.value">
+                    </div>
+                    <button class="btn btn-small btn-danger" onclick="removeCameraConfig(${index})">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        async function saveMultiCameraSetup() {
+            const setupName = document.getElementById('setupName').value.trim();
+            if (!setupName) {
+                alert('Please enter a setup name.');
+                return;
+            }
+            if (cameraConfigs.length === 0) {
+                alert('Please add at least one camera.');
+                return;
+            }
+
+            const payload = {
+                name: setupName,
+                cameras: cameraConfigs.map(c => ({
+                    camera_id: c.camera_id,
+                    priority: c.priority,
+                    video_path: c.video_path,
+                    zones: []
+                })),
+                overlap_regions: []
+            };
+
+            try {
+                const response = await fetch(`${API_BASE}/api/multi-camera/setup`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    const err = await response.json();
+                    throw new Error(err.detail || 'Failed to save setup');
+                }
+
+                alert('Setup saved successfully!');
+                cameraConfigs = [];
+                nextCameraId = 1;
+                document.getElementById('setupName').value = '';
+                renderCameraConfigs();
+                loadSavedSetups();
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+
+        async function loadSavedSetups() {
+            try {
+                const response = await fetch(`${API_BASE}/api/multi-camera/setup`);
+                const setups = await response.json();
+
+                const container = document.getElementById('savedSetupsList');
+                if (setups.length === 0) {
+                    container.innerHTML = '<p style="color: var(--text-dark);">No saved setups found.</p>';
+                    return;
+                }
+
+                container.innerHTML = setups.map(setup => `
+                    <div class="camera-config-item" style="grid-template-columns: 1fr 1fr auto auto;">
+                        <div>
+                            <strong>${setup.name}</strong>
+                            <div style="color: var(--text-dark); font-size: 0.875rem;">${setup.camera_count} cameras</div>
+                        </div>
+                        <div style="color: var(--text-dark); font-size: 0.875rem;">
+                            Created: ${setup.created_at ? new Date(setup.created_at).toLocaleDateString() : 'N/A'}
+                        </div>
+                        <button class="btn btn-small" onclick="processSetup(${setup.id})">
+                            <i class="fas fa-play"></i> Process
+                        </button>
+                        <button class="btn btn-small btn-danger" onclick="deleteSetup(${setup.id})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Failed to load setups:', error);
+            }
+        }
+
+
+        async function processSetup(setupId) {
+            try {
+                showProgress(true);
+                const response = await fetch(`${API_BASE}/api/multi-camera/process/${setupId}`, { method: 'POST' });
+                const result = await response.json();
+                showProgress(false);
+
+                // Create results display
+                const resultsHtml = `
+                    <div class="glass-card">
+                        <h2><i class="fas fa-video"></i> Multi-Camera Processing Results</h2>
+                        <h3 style="color: var(--text-dark); margin-bottom: 2rem;">${result.setup_name}</h3>
+                        
+                        ${result.errors && result.errors.length > 0 ? `
+                            <div class="message error-message" style="display: block; margin-bottom: 2rem;">
+                                <strong>Errors:</strong>
+                                <ul style="margin: 0.5rem 0 0 1.5rem;">
+                                    ${result.errors.map(err => `<li>${err}</li>`).join('')}
+                                </ul>
+                            </div>
+                        ` : ''}
+                        
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+                            <div class="live-stat-card">
+                                <div class="live-stat-value">${result.cameras_processed} / ${result.cameras_total}</div>
+                                <div class="live-stat-label">Cameras Processed</div>
+                            </div>
+                            <div class="live-stat-card">
+                                <div class="live-stat-value">${result.unified_stats.total_chairs}</div>
+                                <div class="live-stat-label">Total Chairs</div>
+                            </div>
+                            <div class="live-stat-card">
+                                <div class="live-stat-value">${result.unified_stats.occupied_chairs}</div>
+                                <div class="live-stat-label">Occupied</div>
+                            </div>
+                            <div class="live-stat-card">
+                                <div class="live-stat-value">${(result.unified_stats.occupancy_rate * 100).toFixed(1)}%</div>
+                                <div class="live-stat-label">Occupancy Rate</div>
+                            </div>
+                        </div>
+                        
+                        ${Object.keys(result.per_camera_stats).length > 0 ? `
+                            <h3 style="margin-top: 2rem;"><i class="fas fa-camera"></i> Per-Camera Statistics</h3>
+                            <table class="asset-table" style="margin-top: 1rem;">
+                                <thead>
+                                    <tr>
+                                        <th>Camera ID</th>
+                                        <th>Frames Processed</th>
+                                        <th>Avg. Occupancy</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${Object.entries(result.per_camera_stats).map(([camId, stats]) => `
+                                        <tr>
+                                            <td>Camera ${camId}</td>
+                                            <td>${stats.total_frames}</td>
+                                            <td>${(stats.avg_occupancy_rate * 100).toFixed(1)}%</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        ` : ''}
+                        
+                        <div style="margin-top: 2rem; text-align: center;">
+                            <button class="btn" onclick="showMainView(true)" style="background: var(--bg-light);">
+                                <i class="fas fa-arrow-left"></i> Back to Setup
+                            </button>
+                        </div>
+                    </div>
+                `;
+
+                document.getElementById('resultsSection').innerHTML = resultsHtml;
+                document.getElementById('resultsSection').style.display = 'block';
+                document.getElementById('mainHeader').style.display = 'none';
+                document.getElementById('modeTabs').style.display = 'none';
+                document.getElementById('mainContent').style.display = 'none';
+
+            } catch (error) {
+                showProgress(false);
+                showError('Multi-camera processing error: ' + error.message);
+            }
+        }
+
+        async function deleteSetup(setupId) {
+            if (!confirm('Are you sure you want to delete this setup?')) return;
+
+            try {
+                const response = await fetch(`${API_BASE}/api/multi-camera/setup/${setupId}`, { method: 'DELETE' });
+                if (response.ok) {
+                    loadSavedSetups();
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+
+        // Load saved setups on page load
+        loadSavedSetups();
+        renderCameraConfigs();
     </script>
 </body>
 
