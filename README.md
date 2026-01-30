@@ -1502,9 +1502,8 @@ SOFTWARE.
 
 For issues, questions, or contributions:
 
-- **GitHub Issues**: [Report a bug or request a feature](<issue-tracker-url>)
 - **Documentation**: This README and inline code documentation
-- **Email**: <support-email>
+- **Email**: its.manas.sharma@gmail.com
 
 ---
 
