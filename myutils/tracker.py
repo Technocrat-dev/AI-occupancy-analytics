@@ -1,5 +1,5 @@
 def convert_to_deepsort_format(detections):
-    """Convert YOLOv5 detections to DeepSORT format"""
+    """Convert YOLO11 detections to DeepSORT format"""
     deepsort_detections = []
     
     for _, detection in detections.iterrows():

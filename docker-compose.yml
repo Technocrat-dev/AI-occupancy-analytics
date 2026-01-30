@@ -1,11 +1,23 @@
-
 version: '3.8'
 
-
 services:
-  
-  web:
-    
+  chair-analytics:
     build: .
+    image: chair-occupancy-app
+    container_name: chair_project
     ports:
       - "8000:8000"
+    volumes:
+      
+      - ./uploads:/app/uploads
+      - ./outputs:/app/outputs
+      - ./analysis.db:/app/analysis.db
+    
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    restart: unless-stopped

@@ -1,18 +1,28 @@
 
-.git
-.gitignore
-Dockerfile
-docker-compose.yml
-
-
-venv/
-gpu_env/
 AI_Chair_Occupancy_Analytics_env/
+venv/
+.env
+
+
+.git/
+.gitignore
 
 
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
 
 
-.vscode/
-.idea/
+analysis.db
+*.sqlite3
+
+
+uploads/
+outputs/
+data/
+
+
+Dockerfile
+docker-compose.yml
+README.md

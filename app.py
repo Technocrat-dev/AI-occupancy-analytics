@@ -1,21 +1,19 @@
 from fastapi import FastAPI, File, UploadFile, HTTPException, Depends
-from fastapi.responses import JSONResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.encoders import jsonable_encoder
-from typing import List
-import schemas 
-import os
+from typing import List, Optional
+import schemas
 import uuid
 import shutil
-from pathlib import Path
 import logging
-from typing import Optional, List
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
 import json
 from sqlalchemy.orm import Session
 
+from config import settings
 from process_video import process_video_for_api
 import database, sql_models
 
@@ -24,9 +22,13 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI(
     title="Chair Occupancy Tracker API",
-    description="API for processing videos to track chair occupancy and provide detailed analytics.",
-    version="1.3.0"
+    description=\"API for processing videos to track chair occupancy and provide detailed analytics.\",
+    version=\"2.0.0\"
 )
+
+@app.get("/")
+async def read_root():
+    return FileResponse('index.html')
 
 sql_models.Base.metadata.create_all(bind=database.engine)
 
@@ -38,16 +40,22 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-UPLOAD_DIR = Path("uploads")
-OUTPUT_DIR = Path("outputs")
-UPLOAD_DIR.mkdir(exist_ok=True)
-OUTPUT_DIR.mkdir(exist_ok=True)
+# Include multi-camera API router
+from api.multi_camera import router as multi_camera_router
+app.include_router(multi_camera_router)
 
-app.mount("/outputs", StaticFiles(directory="outputs"), name="outputs")
+# Include WebSocket for real-time progress
+from websocket_handler import include_websocket
+include_websocket(app)
 
-MAX_FILE_SIZE = 100 * 1024 * 1024
-ALLOWED_EXTENSIONS = {".mp4", ".avi", ".mov", ".mkv", ".wmv"}
-executor = ThreadPoolExecutor(max_workers=2)
+# Initialize directories and executor
+settings.ensure_directories()
+UPLOAD_DIR = settings.UPLOAD_DIR
+OUTPUT_DIR = settings.OUTPUT_DIR
+
+app.mount("/outputs", StaticFiles(directory=str(OUTPUT_DIR)), name="outputs")
+
+executor = ThreadPoolExecutor(max_workers=settings.MAX_WORKERS)
 
 def get_db():
     db = database.SessionLocal()
@@ -57,23 +65,37 @@ def get_db():
         db.close()
 
 def validate_video_file(filename: str, file_size: int) -> bool:
-    if file_size > MAX_FILE_SIZE: return False
-    return Path(filename).suffix.lower() in ALLOWED_EXTENSIONS
+    """Validate uploaded video file by extension and size."""
+    from pathlib import Path
+    if file_size > settings.MAX_FILE_SIZE:
+        return False
+    return Path(filename).suffix.lower() in settings.ALLOWED_EXTENSIONS
 
-@app.get("/")
-async def root():
-    return {"message": "Chair Occupancy Tracker API is running"}
+
 
 @app.post("/process-video")
 async def process_video_endpoint(
     file: UploadFile = File(...),
-    proximity_threshold: Optional[int] = 80,
-    occupancy_frames_threshold: Optional[int] = 5,
-    motion_blur_threshold: Optional[int] = 100,
+    proximity_threshold: Optional[int] = None,
+    occupancy_frames_threshold: Optional[int] = None,
+    motion_blur_threshold: Optional[int] = None,
     db: Session = Depends(get_db)
 ):
+    """Process an uploaded video to track chair occupancy."""
     if not file.filename or not validate_video_file(file.filename, file.size or 0):
         raise HTTPException(status_code=400, detail="Invalid file format or size.")
+    
+    # Apply defaults and validate parameter ranges
+    from pathlib import Path
+    prox = settings.validate_proximity_threshold(
+        proximity_threshold if proximity_threshold is not None else settings.DEFAULT_PROXIMITY_THRESHOLD
+    )
+    occ_frames = settings.validate_occupancy_frames(
+        occupancy_frames_threshold if occupancy_frames_threshold is not None else settings.DEFAULT_OCCUPANCY_FRAMES
+    )
+    blur = settings.validate_motion_blur_threshold(
+        motion_blur_threshold if motion_blur_threshold is not None else settings.DEFAULT_MOTION_BLUR_THRESHOLD
+    )
     
     unique_id = str(uuid.uuid4())
     input_path = UPLOAD_DIR / f"{unique_id}{Path(file.filename).suffix}"
@@ -84,15 +106,15 @@ async def process_video_endpoint(
         with open(input_path, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
         
-        settings = {
-            'proximity_threshold': proximity_threshold, 
-            'occupancy_frames_threshold': occupancy_frames_threshold,
-            'motion_blur_threshold': motion_blur_threshold
+        processing_settings = {
+            'proximity_threshold': prox,
+            'occupancy_frames_threshold': occ_frames,
+            'motion_blur_threshold': blur
         }
         
         loop = asyncio.get_event_loop()
         processing_result = await loop.run_in_executor(
-            executor, process_video_for_api, str(input_path), str(output_path), settings
+            executor, process_video_for_api, str(input_path), str(output_path), processing_settings
         )
         
         serializable_results = jsonable_encoder(processing_result)

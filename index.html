@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -20,7 +21,11 @@
             --border-color: rgba(128, 128, 128, 0.2);
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -29,74 +34,201 @@
             line-height: 1.6;
             overflow-x: hidden;
         }
-        
+
         .background-animation {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100vh;
-            background: var(--bg-dark); overflow: hidden; z-index: -1;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background: var(--bg-dark);
+            overflow: hidden;
+            z-index: -1;
         }
 
         .background-animation .line {
-            position: absolute; display: block; list-style: none;
-            width: 20px; height: 20px; background: rgba(14, 165, 233, 0.1);
-            animation: animate-bg 25s linear infinite; bottom: -150px; border-radius: 50%;
-        }
-        
-        .background-animation .line:nth-child(1) { left: 25%; width: 80px; height: 80px; animation-delay: 0s; }
-        .background-animation .line:nth-child(2) { left: 10%; width: 20px; height: 20px; animation-delay: 2s; animation-duration: 12s; }
-        .background-animation .line:nth-child(3) { left: 70%; width: 20px; height: 20px; animation-delay: 4s; }
-        .background-animation .line:nth-child(4) { left: 40%; width: 60px; height: 60px; animation-delay: 0s; animation-duration: 18s; }
-        .background-animation .line:nth-child(5) { left: 65%; width: 20px; height: 20px; animation-delay: 0s; }
-        .background-animation .line:nth-child(6) { left: 75%; width: 110px; height: 110px; animation-delay: 3s; }
-        
-        @keyframes animate-bg {
-            0% { transform: translateY(0) rotate(0deg); opacity: 1; }
-            100% { transform: translateY(-120vh) rotate(720deg); opacity: 0; }
+            position: absolute;
+            display: block;
+            list-style: none;
+            width: 20px;
+            height: 20px;
+            background: rgba(14, 165, 233, 0.1);
+            animation: animate-bg 25s linear infinite;
+            bottom: -150px;
+            border-radius: 50%;
         }
 
-        .main-container { max-width: 1200px; margin: 0 auto; padding: 2rem; }
+        .background-animation .line:nth-child(1) {
+            left: 25%;
+            width: 80px;
+            height: 80px;
+            animation-delay: 0s;
+        }
+
+        .background-animation .line:nth-child(2) {
+            left: 10%;
+            width: 20px;
+            height: 20px;
+            animation-delay: 2s;
+            animation-duration: 12s;
+        }
+
+        .background-animation .line:nth-child(3) {
+            left: 70%;
+            width: 20px;
+            height: 20px;
+            animation-delay: 4s;
+        }
+
+        .background-animation .line:nth-child(4) {
+            left: 40%;
+            width: 60px;
+            height: 60px;
+            animation-delay: 0s;
+            animation-duration: 18s;
+        }
+
+        .background-animation .line:nth-child(5) {
+            left: 65%;
+            width: 20px;
+            height: 20px;
+            animation-delay: 0s;
+        }
+
+        .background-animation .line:nth-child(6) {
+            left: 75%;
+            width: 110px;
+            height: 110px;
+            animation-delay: 3s;
+        }
+
+        @keyframes animate-bg {
+            0% {
+                transform: translateY(0) rotate(0deg);
+                opacity: 1;
+            }
+
+            100% {
+                transform: translateY(-120vh) rotate(720deg);
+                opacity: 0;
+            }
+        }
+
+        .main-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
 
         .glass-card {
-            background: rgba(30, 41, 59, 0.6); backdrop-filter: blur(15px);
-            border: 1px solid var(--border-color); border-radius: 20px;
-            padding: 2.5rem; margin-bottom: 2rem; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-            opacity: 0; transform: translateY(20px); animation: slideIn 0.5s forwards;
+            background: rgba(30, 41, 59, 0.6);
+            backdrop-filter: blur(15px);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            opacity: 0;
+            transform: translateY(20px);
+            animation: slideIn 0.5s forwards;
         }
 
-        @keyframes slideIn { to { opacity: 1; transform: translateY(0); } }
+        @keyframes slideIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
 
-        .header { text-align: center; margin-bottom: 3rem; }
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
         .header h1 {
-            font-size: 3rem; font-weight: 800; letter-spacing: -1px;
+            font-size: 3rem;
+            font-weight: 800;
+            letter-spacing: -1px;
             background: linear-gradient(90deg, var(--primary), var(--secondary));
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
             margin-bottom: 0.5rem;
         }
-        .header p { font-size: 1.1rem; color: var(--text-dark); max-width: 600px; margin: auto; }
-        
-        .upload-area {
-            border: 2px dashed var(--text-dark); border-radius: 16px;
-            padding: 3rem; text-align: center; cursor: pointer; transition: all 0.3s ease;
+
+        .header p {
+            font-size: 1.1rem;
+            color: var(--text-dark);
+            max-width: 600px;
+            margin: auto;
         }
-        .upload-area:hover, .upload-area.dragover { border-color: var(--primary); background-color: rgba(14, 165, 233, 0.1); }
-        .upload-area i { font-size: 3rem; color: var(--primary); margin-bottom: 1rem; }
-        
-        .selected-file-info { margin-top: 1.5rem; text-align: center; color: var(--text-dark); }
-        .settings-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-top: 2rem; }
-        .setting-group label { display: block; margin-bottom: 0.5rem; font-weight: 500; }
+
+        .upload-area {
+            border: 2px dashed var(--text-dark);
+            border-radius: 16px;
+            padding: 3rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .upload-area:hover,
+        .upload-area.dragover {
+            border-color: var(--primary);
+            background-color: rgba(14, 165, 233, 0.1);
+        }
+
+        .upload-area i {
+            font-size: 3rem;
+            color: var(--primary);
+            margin-bottom: 1rem;
+        }
+
+        .selected-file-info {
+            margin-top: 1.5rem;
+            text-align: center;
+            color: var(--text-dark);
+        }
+
+        .settings-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .setting-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
         .setting-group input {
-            width: 100%; background-color: var(--bg-dark);
-            border: 1px solid var(--border-color); color: var(--text-light);
-            border-radius: 8px; padding: 0.75rem;
+            width: 100%;
+            background-color: var(--bg-dark);
+            border: 1px solid var(--border-color);
+            color: var(--text-light);
+            border-radius: 8px;
+            padding: 0.75rem;
         }
 
         .btn {
             background: linear-gradient(90deg, var(--primary), var(--secondary));
-            color: white; border: none; padding: 1rem 2rem;
-            border-radius: 50px; font-size: 1rem; font-weight: 600;
-            cursor: pointer; transition: all 0.3s ease;
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
         }
-        .btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(139, 92, 246, 0.3); }
+
+        .btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(139, 92, 246, 0.3);
+        }
+
         .btn:disabled {
             background: var(--bg-light);
             color: var(--text-dark);
@@ -105,33 +237,107 @@
             box-shadow: none;
         }
 
-        .progress-container { text-align: center; }
-        .progress-bar { width: 100%; height: 8px; background: var(--bg-light); border-radius: 4px; overflow: hidden; margin-top: 1rem; }
-        .progress-fill { width: 0%; height: 100%; background: linear-gradient(90deg, var(--primary), var(--accent)); border-radius: 4px; transition: width 0.5s ease; }
-        
-        .message { padding: 1rem; border-radius: 8px; margin: 2rem 0; border: 1px solid; }
-        .error-message { background-color: rgba(239, 68, 68, 0.1); border-color: var(--error); color: var(--error); }
-        
-        .results-section h2, .history-section h2 { text-align: center; font-size: 2rem; margin-bottom: 2rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem;}
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; }
-        .stat-card { text-align: center; padding: 1.5rem; background: var(--bg-light); border-radius: 16px; border: 1px solid var(--border-color); }
-        .stat-value { font-size: 2.5rem; font-weight: 700; color: var(--primary); }
-        .stat-label { color: var(--text-dark); }
-        
-        .asset-table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
-        .asset-table th, .asset-table td { padding: 0.75rem; text-align: left; border-bottom: 1px solid var(--border-color); }
-        .asset-table th { color: var(--text-dark); }
+        .progress-container {
+            text-align: center;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: var(--bg-light);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 1rem;
+        }
+
+        .progress-fill {
+            width: 0%;
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+
+        .message {
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 2rem 0;
+            border: 1px solid;
+        }
+
+        .error-message {
+            background-color: rgba(239, 68, 68, 0.1);
+            border-color: var(--error);
+            color: var(--error);
+        }
+
+        .results-section h2,
+        .history-section h2 {
+            text-align: center;
+            font-size: 2rem;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 1rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .stat-card {
+            text-align: center;
+            padding: 1.5rem;
+            background: var(--bg-light);
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .stat-label {
+            color: var(--text-dark);
+        }
+
+        .asset-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        .asset-table th,
+        .asset-table td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .asset-table th {
+            color: var(--text-dark);
+        }
     </style>
 </head>
+
 <body>
     <div class="background-animation">
-        <div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div>
+        <div class="line"></div>
+        <div class="line"></div>
+        <div class="line"></div>
+        <div class="line"></div>
+        <div class="line"></div>
+        <div class="line"></div>
     </div>
 
     <main class="main-container">
         <header class="header" id="mainHeader">
             <h1>AI Occupancy Analytics</h1>
-            <p>Unlock powerful insights from your video footage. Analyze space utilization, user behavior, and key activity events.</p>
+            <p>Unlock powerful insights from your video footage. Analyze space utilization, user behavior, and key
+                activity events.</p>
             <div style="margin-top: 1.5rem;">
                 <button class="btn" id="viewHistoryBtn"><i class="fas fa-history"></i> View Analysis History</button>
             </div>
@@ -146,21 +352,25 @@
                     </div>
                     <input type="file" id="videoFile" accept="video/*" style="display: none;">
                     <div class="selected-file-info" id="selectedFileInfo" style="display: none;">
-                         <p><i class="fas fa-file-video"></i> <strong>File:</strong> <span id="fileName"></span> (<span id="fileSize"></span>)</p>
+                        <p><i class="fas fa-file-video"></i> <strong>File:</strong> <span id="fileName"></span> (<span
+                                id="fileSize"></span>)</p>
                     </div>
                 </div>
                 <div class="settings-grid">
-                     <div class="setting-group">
+                    <div class="setting-group">
                         <label for="proximityThreshold">Proximity Threshold (px)</label>
-                        <input type="number" id="proximityThreshold" value="80" title="How close a person must be to a chair.">
+                        <input type="number" id="proximityThreshold" value="80"
+                            title="How close a person must be to a chair.">
                     </div>
                     <div class="setting-group">
                         <label for="occupancyFrames">Occupancy Frames</label>
-                        <input type="number" id="occupancyFrames" value="5" title="Number of consecutive frames to confirm occupancy.">
+                        <input type="number" id="occupancyFrames" value="5"
+                            title="Number of consecutive frames to confirm occupancy.">
                     </div>
                     <div class="setting-group">
                         <label for="motionBlurThreshold">Motion Blur Threshold</label>
-                        <input type="number" id="motionBlurThreshold" value="100" title="Sensitivity for detecting and skipping blurry frames.">
+                        <input type="number" id="motionBlurThreshold" value="100"
+                            title="Sensitivity for detecting and skipping blurry frames.">
                     </div>
                     <div class="setting-group" style="display: flex; align-items: flex-end;">
                         <button class="btn" id="processBtn" disabled>
@@ -203,14 +413,16 @@
                     </table>
                 </div>
                 <div style="margin-top: 2rem; text-align: center;">
-                    <button class="btn" id="backToUploadBtn" style="background: var(--bg-light);"><i class="fas fa-arrow-left"></i> Back to Upload</button>
+                    <button class="btn" id="backToUploadBtn" style="background: var(--bg-light);"><i
+                            class="fas fa-arrow-left"></i> Back to Upload</button>
                 </div>
             </div>
         </section>
     </main>
 
     <script>
-        const API_BASE = 'http://127.0.0.1:8000';
+        // Dynamic API base - works in Docker, localhost, and any deployment
+        const API_BASE = window.location.origin;
         let selectedFile = null;
         let occupancyChartInstance = null;
 
@@ -230,11 +442,11 @@
             fileUpload.addEventListener('drop', (e) => handleFile(e.dataTransfer.files[0]), false);
 
             document.getElementById('processBtn').addEventListener('click', processVideo);
-            
+
             document.getElementById('viewHistoryBtn').addEventListener('click', showHistoryView);
             document.getElementById('backToUploadBtn').addEventListener('click', showMainView);
         });
-        
+
         function displayResults(data) {
             const resultsSection = document.getElementById('resultsSection');
             showMainView(false); // Hide main view and header
@@ -245,7 +457,7 @@
             }
 
             const stats = data.processing_results;
-            
+
             const createTable = (headers, dataObject) => {
                 if (!dataObject || Object.keys(dataObject).length === 0) return '<p>No data available.</p>';
                 let table = '<table class="asset-table"><thead><tr>';
@@ -318,7 +530,7 @@
                     </div>
                 </div>
             `;
-            
+
             document.getElementById('resetBtn').addEventListener('click', resetApp);
             document.getElementById('downloadBtn').addEventListener('click', downloadVideo);
             document.getElementById('processedVideo').src = `${API_BASE}${data.output_video_url}`;
@@ -342,14 +554,14 @@
                 data: chartData,
                 options: {
                     scales: {
-                        y: { 
-                            beginAtZero: true, 
+                        y: {
+                            beginAtZero: true,
                             max: 100,
-                            ticks: { color: 'var(--text-dark)', callback: (value) => value + '%' } 
+                            ticks: { color: 'var(--text-dark)', callback: (value) => value + '%' }
                         },
-                        x: { 
+                        x: {
                             ticks: { color: 'var(--text-dark)' },
-                            title: { display: true, text: 'Frame Number', color: 'var(--text-light)'}
+                            title: { display: true, text: 'Frame Number', color: 'var(--text-light)' }
                         }
                     },
                     plugins: { legend: { labels: { color: 'var(--text-light)' } } }
@@ -365,14 +577,14 @@
             document.getElementById('selectedFileInfo').style.display = 'block';
             document.getElementById('processBtn').disabled = false;
         }
-        
+
         function resetApp() {
             selectedFile = null;
             document.getElementById('videoFile').value = '';
             document.getElementById('selectedFileInfo').style.display = 'none';
             document.getElementById('processBtn').disabled = true;
-            if (occupancyChartInstance) { 
-                occupancyChartInstance.destroy(); 
+            if (occupancyChartInstance) {
+                occupancyChartInstance.destroy();
             }
             showMainView(true);
         }
@@ -396,8 +608,8 @@
             try {
                 const response = await fetch(`${API_BASE}/api/history`);
                 const historyData = await response.json();
-                
-                tableBody.innerHTML = ''; 
+
+                tableBody.innerHTML = '';
 
                 if (historyData.length === 0) {
                     tableBody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No analysis history found.</td></tr>';
@@ -408,7 +620,7 @@
                     const row = tableBody.insertRow();
                     row.id = `history-row-${result.file_id}`;
                     const formattedDate = new Date(result.analysis_time).toLocaleString();
-                    
+
                     row.innerHTML = `
                         <td>${result.filename}</td>
                         <td>${formattedDate}</td>
@@ -421,7 +633,7 @@
                             </button>
                         </td>
                     `;
-                    
+
                     row.querySelector('.view-report-btn').addEventListener('click', (e) => {
                         viewHistoricReport(e.target.getAttribute('data-fileid'));
                     });
@@ -446,7 +658,7 @@
                 }
                 document.getElementById(`history-row-${fileId}`)?.remove();
                 if (document.getElementById('historyTableBody').rows.length === 0) {
-                     document.getElementById('historyTableBody').innerHTML = '<tr><td colspan="5" style="text-align:center;">No analysis history found.</td></tr>';
+                    document.getElementById('historyTableBody').innerHTML = '<tr><td colspan="5" style="text-align:center;">No analysis history found.</td></tr>';
                 }
             } catch (error) {
                 showError(`Error deleting analysis: ${error.message}`);
@@ -460,15 +672,15 @@
             try {
                 const response = await fetch(`${API_BASE}/api/results/${fileId}`);
                 if (!response.ok) throw new Error("Could not retrieve the detailed report.");
-                
+
                 const resultsData = await response.json();
-                
+
                 const fullResponse = {
                     file_id: fileId,
                     output_video_url: `/outputs/${fileId}_output.mp4`,
                     processing_results: resultsData
                 };
-                
+
                 displayResults(fullResponse);
             } catch (error) {
                 showMainView(true);
@@ -537,4 +749,5 @@
         }
     </script>
 </body>
+
 </html>
