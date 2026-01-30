@@ -1,3 +1,8 @@
+
+
+
+
+
 # AI Chair Occupancy Analytics Platform
 
 [![Python](https://img.shields.io/badge/Python-3.10+-blue)](https://www.python.org/)
@@ -101,9 +106,7 @@ The **AI Chair Occupancy Analytics Platform** is an enterprise-grade solution fo
 
 ### Dashboard Overview
 
-<!-- ![Dashboard Overview](screenshots/dashboard.png) -->
-
-*Screenshot placeholder: Web dashboard showing real-time occupancy statistics and charts*
+<img width="2047" height="1099" alt="image" src="https://github.com/user-attachments/assets/f85ec0aa-7ac6-4134-a791-a70fe7a029d9" />
 
 ### Video Processing
 
@@ -113,19 +116,18 @@ The **AI Chair Occupancy Analytics Platform** is an enterprise-grade solution fo
 
 ### Analytics Visualization
 
-<!-- ![Analytics](screenshots/analytics.png) -->
-
-*Screenshot placeholder: Occupancy chart showing frame-by-frame utilization over time*
+<img width="1839" height="662" alt="image" src="https://github.com/user-attachments/assets/2fca25d6-7141-40ad-8488-1facd03367bf" />
+<img width="2026" height="1093" alt="image" src="https://github.com/user-attachments/assets/c8950eb6-5522-4903-8542-ffb268c9a341" />
+<img width="1896" height="1001" alt="image" src="https://github.com/user-attachments/assets/168d4c51-0ae4-4dcd-9878-74affe110dff" />
+<img width="1788" height="835" alt="image" src="https://github.com/user-attachments/assets/8c3b5ffb-cac9-40ee-9ac1-f15d2bf4daba" />
 
 ### Multi-Camera Setup
 
-<!-- ![Multi-Camera](screenshots/multi-camera.png) -->
-
-*Screenshot placeholder: Multi-camera configuration interface with zone definitions*
+<img width="2026" height="1092" alt="image" src="https://github.com/user-attachments/assets/f4b5af13-afae-4b83-8ac2-d69b3407e627" />
 
 ### Live Streaming
 
-<!-- ![Live Stream](screenshots/live-stream.png) -->
+<img width="1807" height="1042" alt="image" src="https://github.com/user-attachments/assets/046c3d06-c30c-42f8-804a-844750ac0699" />
 
 *Screenshot placeholder: Real-time chair occupancy monitoring from webcam/RTSP stream*
 
