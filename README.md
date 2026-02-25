@@ -15,7 +15,7 @@
 
 ---
 
-## 📋 Table of Contents
+## Table of Contents
 
 - [Overview](#-overview)
 - [Key Features](#-key-features)
@@ -37,7 +37,7 @@
 
 ---
 
-## 🎯 Overview
+## Overview
 
 The **AI Chair Occupancy Analytics Platform** is an enterprise-grade solution for monitoring and analyzing chair usage patterns in real-time. It utilizes state-of-the-art computer vision and deep learning techniques to:
 
@@ -49,49 +49,49 @@ The **AI Chair Occupancy Analytics Platform** is an enterprise-grade solution fo
 
 ### Use Cases
 
-- 🏢 **Office Space Management**: Optimize desk allocation and workspace planning
-- 📚 **Library Analytics**: Monitor study room and seating availability
-- 🏥 **Healthcare Facilities**: Track waiting room occupancy
-- 🎓 **Educational Institutions**: Analyze classroom and cafeteria usage
-- 🏪 **Retail & Hospitality**: Monitor seating areas and customer flow
+- **Office Space Management**: Optimize desk allocation and workspace planning
+- **Library Analytics**: Monitor study room and seating availability
+- **Healthcare Facilities**: Track waiting room occupancy
+- **Educational Institutions**: Analyze classroom and cafeteria usage
+- **Retail & Hospitality**: Monitor seating areas and customer flow
 
 ---
 
-## ✨ Key Features
+## Key Features
 
 ### Core Capabilities
 
-- ✅ **YOLOv11 Object Detection**: State-of-the-art real-time detection of chairs and people
-- ✅ **DeepSort Tracking**: Advanced person re-identification across frames
-- ✅ **Multi-Camera Support**: Unified analytics with automatic chair deduplication
-- ✅ **Real-Time Streaming**: WebSocket support for live video and statistics
-- ✅ **RESTful API**: Complete API for integration with external systems
-- ✅ **Web Dashboard**: Modern glassmorphism UI with interactive visualizations
-- ✅ **Batch Processing**: Asynchronous video analysis with progress tracking
-- ✅ **Database Persistence**: SQLite storage for historical analytics
+- **YOLOv11 Object Detection**: State-of-the-art real-time detection of chairs and people
+- **DeepSort Tracking**: Advanced person re-identification across frames
+- **Multi-Camera Support**: Unified analytics with automatic chair deduplication
+- **Real-Time Streaming**: WebSocket support for live video and statistics
+- **RESTful API**: Complete API for integration with external systems
+- **Web Dashboard**: Modern glassmorphism UI with interactive visualizations
+- **Batch Processing**: Asynchronous video analysis with progress tracking
+- **Database Persistence**: SQLite storage for historical analytics
 
 ### Advanced Features
 
-- 🔄 **Smart Tracking**
+- **Smart Tracking**
   - Chair position interpolation during occlusion
   - Motion blur detection and adaptive enhancement
   - Reflection detection and filtering
   - Person-chair zone-based occupancy detection
 
-- 📊 **Comprehensive Analytics**
+- **Comprehensive Analytics**
   - Frame-by-frame occupancy rates
   - Per-person usage metrics (total time, chairs used, session count)
   - Per-chair metrics (total usage, unique users)
   - Peak and low activity window detection
   - Interaction ledger with complete session history
 
-- 🎥 **Multi-Camera Intelligence**
+- **Multi-Camera Intelligence**
   - Camera priority zones for overlapping views
   - Automatic duplicate chair resolution
   - Conflict-free unified occupancy counting
   - Configurable overlap regions
 
-- 🔧 **Production Ready**
+- **Production Ready**
   - Docker containerization with GPU support
   - Environment-based configuration
   - Automated cleanup utilities
@@ -100,7 +100,7 @@ The **AI Chair Occupancy Analytics Platform** is an enterprise-grade solution fo
 
 ---
 
-## 📸 Screenshots
+## Screenshots
 
 ### Dashboard Overview
 
@@ -121,7 +121,7 @@ The **AI Chair Occupancy Analytics Platform** is an enterprise-grade solution fo
 
 <img width="2026" height="1093" alt="image" src="https://github.com/user-attachments/assets/c8950eb6-5522-4903-8542-ffb268c9a341" />
 
-## 🏗️ Architecture
+## Architecture
 
 ### High-Level System Architecture
 
@@ -378,7 +378,7 @@ graph LR
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 
@@ -425,7 +425,7 @@ docker-compose -f docker-compose.cpu.yml up --build
 
 ---
 
-## 📥 Installation
+## Installation
 
 ### Method 1: Standard Installation
 
@@ -486,7 +486,7 @@ docker-compose -f docker-compose.cpu.yml up --build -d
 
 ---
 
-## 💡 Usage
+## Usage
 
 ### Web Interface
 
@@ -584,7 +584,7 @@ print(f"Average occupancy: {results['average_occupancy_rate']:.2f}%")
 
 ---
 
-## 📚 API Reference
+## API Reference
 
 ### Core Endpoints
 
@@ -765,7 +765,7 @@ GET /health
 
 ---
 
-## ⚙️ Configuration
+## Configuration
 
 ### Environment Variables
 
@@ -843,7 +843,7 @@ deploy:
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 chair_occupancy_project/
@@ -931,7 +931,7 @@ chair_occupancy_project/
 
 ---
 
-## 🔬 Advanced Features
+## Advanced Features
 
 ### Smart Chair Tracking
 
@@ -1007,7 +1007,7 @@ unified_stats = multi_cam_manager.get_unified_occupancy_count(all_camera_data)
 
 ---
 
-## 🧪 Testing
+## Testing
 
 ### Running Tests
 
@@ -1073,7 +1073,7 @@ def test_process_video():
 
 ---
 
-## 🧹 Cleanup & Maintenance
+## Cleanup & Maintenance
 
 ### Automatic Cleanup
 
@@ -1129,7 +1129,7 @@ sqlite3 analysis.db "SELECT COUNT(*) FROM analysis_results;"
 
 ---
 
-## 🚢 Deployment
+## Deployment
 
 ### Production Deployment Checklist
 
@@ -1306,7 +1306,7 @@ spec:
 
 ---
 
-## 🔧 Troubleshooting
+## Troubleshooting
 
 ### Common Issues and Solutions
 
@@ -1435,7 +1435,7 @@ tracker = ChairOccupancyTracker(
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
 Contributions are welcome! Please follow these steps:
 
@@ -1468,7 +1468,7 @@ def calculate_distance(point1: tuple, point2: tuple) -> float:
 
 ---
 
-## 📄 License
+## License
 
 This project is licensed under the **MIT License**.
 
@@ -1498,7 +1498,7 @@ SOFTWARE.
 
 ---
 
-## 📞 Support
+## Support
 
 For issues, questions, or contributions:
 
@@ -1507,7 +1507,7 @@ For issues, questions, or contributions:
 
 ---
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 - **[Ultralytics YOLO](https://github.com/ultralytics/ultralytics)**: State-of-the-art object detection
 - **[DeepSort](https://github.com/nwojke/deep_sort)**: Multiple object tracking algorithm
@@ -1516,4 +1516,4 @@ For issues, questions, or contributions:
 
 ---
 
-**Built with ❤️ for workspace optimization and smart facility management**
+**Built with  for workspace optimization and smart facility management**
